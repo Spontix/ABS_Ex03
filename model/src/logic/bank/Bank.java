@@ -786,7 +786,7 @@ public class Bank implements UIInterfaceLogic {
         }
         else
             this.paymentsPerYazList.stream().filter(p->p.getCurrentYaz()==dtoPaymentsPerYaz.getCurrentYaz()).collect(Collectors.toList()).get(0).setLoanList(loansThatShouldPay);
-            
+
         ArrayList<DTOLoan> DTOLoansThatShouldPay = new ArrayList<>();
         loansThatShouldPay.forEach(l -> DTOLoansThatShouldPay.add(DTOLoan.build(l)));
 

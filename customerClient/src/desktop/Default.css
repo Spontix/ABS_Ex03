@@ -1,0 +1,60 @@
+.root-general {
+    -fx-background-image: url("wallpaper2.jpg");
+    -fx-background-size: cover;
+}
+#gridPaneForImage{
+    -fx-background-image: url("bank.jpg");
+    -fx-background-size: cover;
+}
+
+.label {
+    -fx-font-size: 16px;
+    -fx-font-family: "Californian FB";
+    -fx-font-weight: bold;
+    -fx-text-fill: #333333;
+    -fx-effect: dropshadow( gaussian , rgba(255,255,255,0.5) , 0,0,0,1 );
+}
+.header-button{
+    -fx-text-fill: Black;
+    -fx-font-family: "Californian FB";
+    -fx-font-size: 18px;
+    -fx-background-color: linear-gradient(#4d87d0, #fcf7f6);
+    -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );
+}
+
+.header-button:hover {
+    -fx-background-color: linear-gradient(#fcf7f6, #4d87d0);
+}
+
+.header-tab{
+    -fx-background-color: linear-gradient(#65d9e1, #fcf7f6);
+    -fx-font-family: "Californian FB";
+    -fx-font-size: 18px;
+}
+
+.header-tab:hover {
+    -fx-background-color: linear-gradient(#fcf7f6, #65d9e1);
+}
+
+#errorTextArea{
+//-fx-control-inner-background:#f3d766;
+    -fx-text-fill: red;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-font-family: "Californian FB";
+    -fx-effect: dropShadow( gaussian , rgba(255,255,255,0.5) , 0,0,0,1 );
+}
+
+#filePath{
+    -fx-border-color: linear-gradient(#4d87d0, #95dbe0);
+    -fx-border-width: 3;
+}
+
+#currentYaz{
+    -fx-border-color: linear-gradient(#4d87d0, #95dbe0);
+    -fx-border-width: 3;
+}
+
+/*.list-view{
+    -fx-background-color: ;
+}*/
