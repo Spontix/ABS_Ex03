@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import static constants.Constants.USERNAME;
 import static utils.ServletUtils.GSON_INSTANCE;
 
 @WebServlet(name = "LoansAsBorrowerCustomerServlet",urlPatterns = "/customer/getLoansAsBorrower")
@@ -21,12 +22,12 @@ import static utils.ServletUtils.GSON_INSTANCE;
 public class LoansAsBorrower extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String customerFromSession = SessionUtils.getCustomer(request);
+        String usernameFromParameter = request.getParameter(USERNAME);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         UIInterfaceLogic bank = ServletUtils.getBank(getServletContext());
         DTOLoansList dtoLoansList=new DTOLoansList();
-        dtoLoansList.setDTOLoans((ArrayList<DTOLoan>) bank.getCustomerByName(customerFromSession).getBorrower());
+        dtoLoansList.setDTOLoans((ArrayList<DTOLoan>) bank.getCustomerByName(usernameFromParameter).getBorrower());
         String json = GSON_INSTANCE.toJson(dtoLoansList);
         out.println(json);
         out.flush();

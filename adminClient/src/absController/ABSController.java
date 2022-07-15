@@ -83,7 +83,49 @@ public class ABSController extends HelperFunction implements Initializable {
         adminController = myFXMLLoader("MyAdminView.fxml");
         customersListController=myFXMLLoader("CustomerListViewer.fxml");
 
+        adminController.increaseYazButton.setOnAction(e-> {
+            YazLogicDesktopIncreaseServlet();
+        });
+
         loginController.setAbsController(this);
+        onLoadFileClick();
+        onLoanClickProperty(loansListController,null);
+        onCustomerClickProperty();
+    }
+
+    private void YazLogicDesktopIncreaseServlet(){
+        String finalUrl = HttpUrl
+                .parse(Constants.YAZ_INCREASE_PAGE_ADMIN)
+                .newBuilder()
+                .build()
+                .toString();
+
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        myAlert("Something went wrong: " + e.getMessage())
+                );
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                String responseBody = response.body().string();
+                if (response.code() != 200) {
+                    Platform.runLater(() ->
+                            myAlert(responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        loansListControllerHandler(loansListController);
+                        currentYaz.setText("Current Yaz : "+ responseBody);
+                    });
+                }
+            }
+        });
+    }
+
+    private void onLoadFileClick(){
         loadFileButton.setOnAction(e -> {
             String file = fileChooserImplementation(e);
             String finalUrl = HttpUrl
@@ -110,7 +152,7 @@ public class ABSController extends HelperFunction implements Initializable {
                     if (response.code() != 200) {
                         String responseBody = response.body().string();
                         Platform.runLater(() ->
-                                filePath.setText("Something went wrong: " + responseBody)
+                            myAlert(responseBody)
                         );
                     } else {
                         Platform.runLater(() -> {
@@ -121,8 +163,15 @@ public class ABSController extends HelperFunction implements Initializable {
                 }
             },body);
         });
+    }
 
-        onLoanClickProperty(loansListController,null);
+    private void myAlert(String body){
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Load File Error");
+        alert.setHeaderText("Could not open your file");
+        alert.setContentText(body);
+
+        alert.showAndWait();
     }
 
     public void afterLoginClickAdmin(String name) {
@@ -133,7 +182,7 @@ public class ABSController extends HelperFunction implements Initializable {
         loginBorderPane.setVisible(false);
         viewBy.setVisible(true);
         currentYaz.setVisible(true);
-        showLoanInformationInAdminAndCustomerViewServlet();
+        showLoanInformationInAdminAndCustomerViewServlet(Constants.LOANS_PAGE_ADMIN,loansListController.LoansListView,null);
         showCustomerInformationAdminViewServlet();
 
     }
@@ -178,10 +227,11 @@ public class ABSController extends HelperFunction implements Initializable {
         return selectedLoan;
     }
 
-    private void showLoanInformationInAdminAndCustomerViewServlet(){
+    private void showLoanInformationInAdminAndCustomerViewServlet(String url,ListView<DTOLoan> loanListView,String customerName){
         String finalUrl = HttpUrl
-                .parse(Constants.LOANS_PAGE_ADMIN)
+                .parse(url)
                 .newBuilder()
+                .addQueryParameter("username", customerName)
                 .build()
                 .toString();
 
@@ -210,7 +260,7 @@ public class ABSController extends HelperFunction implements Initializable {
                             e.printStackTrace();
                         }
                         DTOLoansList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOLoansList.class);
-                        showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,dtoLoansList.getDTOLoans(),false);
+                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),false);
                     });
                 }
             }
@@ -263,11 +313,9 @@ public class ABSController extends HelperFunction implements Initializable {
                 DTOCustomer localCustomer = customersListController.customersListView.getSelectionModel().getSelectedItem();
                 customersListController.movementsTableView.setItems(FXCollections.observableArrayList(localCustomer.getMovements()));
                 customersListController.loansListLoanerView.getItems().clear();
-                /*for (DTOLoan dtoLoan:bank.getCustomerLoanersList(localCustomer.getCustomerName()))
-                    customersListController.loansListLoanerView.getItems().add(dtoLoan);
+                showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,customersListController.loansListLoanerView,localCustomer.getName());
                 customersListController.loansListLenderView.getItems().clear();
-                for (DTOLoan dtoLoan:bank.getCustomerBorrowersList(localCustomer.getCustomerName()))
-                    customersListController.loansListLenderView.getItems().add(dtoLoan);*/
+                showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,customersListController.loansListLenderView,localCustomer.getName());
             }
         });
 

@@ -19,7 +19,7 @@ import static utils.ServletUtils.GSON_INSTANCE;
 public class YazUnitServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.setContentType("application/json");
+        response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
         UIInterfaceLogic bankManager = ServletUtils.getBank(getServletContext());
 
@@ -31,8 +31,8 @@ public class YazUnitServlet extends HttpServlet {
                 e.printStackTrace();
             }
             //TodO for test
-            String json = GSON_INSTANCE.toJson(bankManager.getPaymentsPerYaz(YazLogicDesktop.currentYazUnitProperty.getValue()));
-            out.println(json);
+            //String json = GSON_INSTANCE.toJson(bankManager.getPaymentsPerYaz(YazLogicDesktop.currentYazUnitProperty.getValue()));
+            out.println(YazLogicDesktop.currentYazUnitProperty.getValue().intValue());
             out.flush();
         }
     }

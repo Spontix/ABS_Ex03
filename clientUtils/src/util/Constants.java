@@ -25,12 +25,17 @@ public class Constants {
 
     public final static String LOGIN_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/login";
     public final static String LOGIN_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/login";
+    public final static String AS_LOANER_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/getLoansAsLoaner";
+    public final static String AS_BORROWER_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/getLoansAsBorrower";
+
     public final static String LOANS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/loansInformation";
     public final static String CUSTOMERS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/customersInformation";
+    public final static String YAZ_INCREASE_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/yazUnitProgress";
 
     public final static String PAYMENT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loanPayment";
 
     public final static String UPLOAD_FILE_PAGE = FULL_SERVER_PATH_CUSTOMER + "/upload-file";
+
 
     // GSON instance
     public final static Gson GSON_INSTANCE = new Gson();

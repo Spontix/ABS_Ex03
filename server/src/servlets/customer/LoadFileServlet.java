@@ -50,8 +50,10 @@ public class LoadFileServlet extends HttpServlet {
                 } catch (Exception ex) {
                     if (ex.getMessage().equals(" ")) {
                         out.println("The file is not an xml file");
-                    } else
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         out.println(ex.getMessage());
+                    }
                 }
             }
         } else {

@@ -196,7 +196,7 @@ public class Bank implements UIInterfaceLogic {
 
     @Override
     public DTOPaymentsPerYaz getPaymentsPerYaz(int desirableYaz){
-        DTOPaymentsPerYaz dtoPaymentsPerYaz=new DTOPaymentsPerYaz();
+        DTOPaymentsPerYaz dtoPaymentsPerYaz=null;
         for (PaymentsPerYaz originalPaymentsPerYaz : this.paymentsPerYazList) {
             if(originalPaymentsPerYaz.getCurrentYaz()==desirableYaz)
                 dtoPaymentsPerYaz=DTOPaymentsPerYaz.build(originalPaymentsPerYaz);
