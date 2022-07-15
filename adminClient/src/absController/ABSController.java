@@ -2,9 +2,11 @@ package absController;
 
 import com.google.gson.Gson;
 import absController.login.LoginController;
+import dataObjects.dtoBank.dtoAccount.DTOCustomersList;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
 import dataObjects.dtoBank.dtoAccount.DTOLoanStatus;
 import dataObjects.dtoBank.dtoAccount.DTOLoansList;
+import dataObjects.dtoCustomer.DTOCustomer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,6 +24,7 @@ import util.http.HttpClientUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +122,7 @@ public class ABSController extends HelperFunction implements Initializable {
             },body);
         });
 
-
+        onLoanClickProperty(loansListController,null);
     }
 
     public void afterLoginClickAdmin(String name) {
@@ -130,7 +133,52 @@ public class ABSController extends HelperFunction implements Initializable {
         loginBorderPane.setVisible(false);
         viewBy.setVisible(true);
         currentYaz.setVisible(true);
+        showLoanInformationInAdminAndCustomerViewServlet();
+        showCustomerInformationAdminViewServlet();
 
+    }
+
+    private String fileChooserImplementation(javafx.event.ActionEvent e){
+        Node node = (Node) e.getSource();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML","*.xml"));
+        fileChooser.setTitle("Load File");
+        return fileChooser.showOpenDialog(node.getScene().getWindow()).getPath();
+    }
+
+    private void onLoanClickProperty(LoansListController loansListController,CustomerController customerController) {
+        loansListController.LoansListView.getSelectionModel().selectedItemProperty().addListener(e -> {
+            if (!loansListController.LoansListView.getItems().isEmpty()) {
+                DTOLoan selectedLoan = loansListControllerHandler(loansListController);
+            }
+        });
+    }
+
+    private DTOLoan loansListControllerHandler(LoansListController loansListController){
+        clearComponents(loansListController);
+        DTOLoan selectedLoan = loansListController.LoansListView.getSelectionModel().getSelectedItem();
+        if(selectedLoan!=null) {
+            loansListController.loansAccordionInformation.setVisible(true);
+            if (selectedLoan.getLoanStatus() !=DTOLoanStatus.NEW) {
+                loansListController.leftPaymentsLabel.setText("Left payments : " + String.valueOf(selectedLoan.getCapital() - selectedLoan.getCapitalSumLeftTillActive()));
+                loansListController.totalPaymentsLabel.setText("Total payments : " + String.valueOf(selectedLoan.getCapitalSumLeftTillActive()));
+                loansListController.lendersTableView.setItems(FXCollections.observableArrayList(selectedLoan.getListOfInlays()));
+                loansListController.activeStatusTableView.setItems(FXCollections.observableArrayList(selectedLoan));
+                loansListController.inRiskStatusTableView.setItems(FXCollections.observableArrayList(selectedLoan.getPaymentsInfoList()));
+                loansListController.delayedPaymentsColumnRI.setText("Delayed payments : " + String.valueOf(selectedLoan.getInRiskCounter()));
+                loansListController.totalDelayedColumnRI.setText("Total delayed : " + String.valueOf(selectedLoan.getDebt()));
+                if (selectedLoan.getLoanStatus() == DTOLoanStatus.FINISHED) {
+                    loansListController.endYazColumnFI.setVisible(true);
+                    loansListController.startYazLabelFI.setVisible(true);
+                    loansListController.endYazColumnFI.setText("End Yaz : " + String.valueOf(selectedLoan.getEndedYaz()));
+                    loansListController.startYazLabelFI.setText("Start Yaz : " + String.valueOf(selectedLoan.getStartedYazInActive()));
+                }
+            }
+        }
+        return selectedLoan;
+    }
+
+    private void showLoanInformationInAdminAndCustomerViewServlet(){
         String finalUrl = HttpUrl
                 .parse(Constants.LOANS_PAGE_ADMIN)
                 .newBuilder()
@@ -167,94 +215,63 @@ public class ABSController extends HelperFunction implements Initializable {
                 }
             }
         });
-
     }
 
-    private String fileChooserImplementation(javafx.event.ActionEvent e){
-        Node node = (Node) e.getSource();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML","*.xml"));
-        fileChooser.setTitle("Load File");
-        return fileChooser.showOpenDialog(node.getScene().getWindow()).getPath();
-    }
+    private void showCustomerInformationAdminViewServlet(){
+        String finalUrl = HttpUrl
+                .parse(Constants.CUSTOMERS_PAGE_ADMIN)
+                .newBuilder()
+                .build()
+                .toString();
 
-    private void onLoanClickProperty(LoansListController loansListController,CustomerController customerController) {
-        loansListController.LoansListView.getSelectionModel().selectedItemProperty().addListener(e -> {
-            if (!loansListController.LoansListView.getItems().isEmpty()) {
-                DTOLoan selectedLoan = loansListControllerHandler(loansListController);
-                if (customerController != null) {
-                    if (selectedLoan.getLoanStatus() == DTOLoanStatus.RISK || (!selectedLoan.getIsPaid() && selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK() == 0)) {
-                        customerController.payButton.setDisable(false);
-                        customerController.payButton.setOnAction(e1 -> {
-                            try {
-                                if (selectedLoan.getLoanStatus() == DTOLoanStatus.RISK) {
-                                    TextInputDialog paymentDialog = new TextInputDialog();
-                                    paymentDialog.setTitle("Loan In Risk");
-                                    paymentDialog.setContentText("Please enter the amount of money you would like to pay:");
-                                    paymentDialog.setHeaderText("Current Balance: " + /*bank.getCustomerByName(selectedLoan.getOwner()).getAmount() +*/ "\nDebt Amount: " + (selectedLoan.getDebt()));
-                                    paymentDialog.showAndWait();
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
 
-                                    if (paymentDialog.getResult() != null && (Integer.parseInt(paymentDialog.getResult()) <= selectedLoan.getDebt())) {
-                                        bank.operateThePaymentOfTheLoanDesktop(selectedLoan, Integer.parseInt(paymentDialog.getResult()));
-                                    } else {
-                                        throw new Exception("The payment was not preformed!");
-                                    }
-                                } else if (selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK() == 0) {
-                                    bank.operateThePaymentOfTheLoanDesktop(selectedLoan, selectedLoan.paymentPerPulse());
-                                }
-                            } catch (Exception ex) {
-                                popupMessage("Error", ex.getMessage());
-                            }
-                            showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getCustomerLoanersList(selectedLoan.getOwner()), true);
-                            loansListControllerHandler(loansListController);
-                            customerController.payButton.setDisable(true);
-                            loansListController.loansAccordionInformation.setVisible(false);
-                        });
-                    }
-                    if (selectedLoan.getLoanStatus() == DTOLoanStatus.ACTIVE) {
-                        customerController.closeLoanButton.setDisable(false);
-                        customerController.closeLoanButton.setOnAction(e2 -> {
-                            try {
-                                bank.operateThePaymentOfTheLoanDesktop(selectedLoan, selectedLoan.getTotalCapitalPayTillEnd());
-                            } catch (InvocationTargetException | InstantiationException | IllegalAccessException ex) {
-                                popupMessage("System Error!", ex.getMessage());
-                            }
-                            showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getCustomerLoanersList(selectedLoan.getOwner()), true);
-                            loansListControllerHandler(loansListController);
-                            customerController.closeLoanButton.setDisable(true);
-                            loansListController.loansAccordionInformation.setVisible(false);
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        filePath.setText("Something went wrong: " + e.getMessage())
+                );
+            }
 
-                        });
-                    }
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                            filePath.setText("Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        String rawBody = null;
+                        try {
+                            rawBody = response.body().string();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        DTOCustomersList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOCustomersList.class);
+                        showCustomerInformationAdminView(customersListController.customersListView,dtoLoansList.getDTOCustomers());
+                    });
                 }
             }
         });
     }
 
-    private DTOLoan loansListControllerHandler(LoansListController loansListController){
-        clearComponents(loansListController);
-        DTOLoan selectedLoan = loansListController.LoansListView.getSelectionModel().getSelectedItem();
-        if(selectedLoan!=null) {
-            loansListController.loansAccordionInformation.setVisible(true);
-            if (selectedLoan.getLoanStatus() !=DTOLoanStatus.NEW) {
-                loansListController.leftPaymentsLabel.setText("Left payments : " + String.valueOf(selectedLoan.getCapital() - selectedLoan.getCapitalSumLeftTillActive()));
-                loansListController.totalPaymentsLabel.setText("Total payments : " + String.valueOf(selectedLoan.getCapitalSumLeftTillActive()));
-                loansListController.lendersTableView.setItems(FXCollections.observableArrayList(selectedLoan.getListOfInlays()));
-                loansListController.activeStatusTableView.setItems(FXCollections.observableArrayList(selectedLoan));
-                loansListController.inRiskStatusTableView.setItems(FXCollections.observableArrayList(selectedLoan.getPaymentsInfoList()));
-                loansListController.delayedPaymentsColumnRI.setText("Delayed payments : " + String.valueOf(selectedLoan.getInRiskCounter()));
-                loansListController.totalDelayedColumnRI.setText("Total delayed : " + String.valueOf(selectedLoan.getDebt()));
-                if (selectedLoan.getLoanStatus() == DTOLoanStatus.FINISHED) {
-                    loansListController.endYazColumnFI.setVisible(true);
-                    loansListController.startYazLabelFI.setVisible(true);
-                    loansListController.endYazColumnFI.setText("End Yaz : " + String.valueOf(selectedLoan.getEndedYaz()));
-                    loansListController.startYazLabelFI.setText("Start Yaz : " + String.valueOf(selectedLoan.getStartedYazInActive()));
-                }
+    private void onCustomerClickProperty(){
+        customersListController.customersListView.getSelectionModel().selectedItemProperty().addListener(e -> {
+            if(! customersListController.customersListView.getItems().isEmpty()) {
+                customersListController.customersAccordionInformation.setVisible(true);
+                DTOCustomer localCustomer = customersListController.customersListView.getSelectionModel().getSelectedItem();
+                customersListController.movementsTableView.setItems(FXCollections.observableArrayList(localCustomer.getMovements()));
+                customersListController.loansListLoanerView.getItems().clear();
+                /*for (DTOLoan dtoLoan:bank.getCustomerLoanersList(localCustomer.getCustomerName()))
+                    customersListController.loansListLoanerView.getItems().add(dtoLoan);
+                customersListController.loansListLenderView.getItems().clear();
+                for (DTOLoan dtoLoan:bank.getCustomerBorrowersList(localCustomer.getCustomerName()))
+                    customersListController.loansListLenderView.getItems().add(dtoLoan);*/
             }
-        }
-        return selectedLoan;
-    }
+        });
 
+    }
 
         /*showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getLoansList(),false);
         showLoanInformationInAdminAndCustomerView(customerController.loanerLoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()),false);
@@ -528,6 +545,7 @@ public class ABSController extends HelperFunction implements Initializable {
         }
         return selectedLoan;
     }
+*/
 
     private void clearComponents(LoansListController loansListController){
         loansListController.activeStatusTableView.getItems().clear();
@@ -546,7 +564,8 @@ public class ABSController extends HelperFunction implements Initializable {
         loansListController.startYazLabelFI.setText("");
         loansListController.endYazColumnFI.setText("");
         loansListController.startYazLabelFI.setText("");
-    }*/
+    }
+
    public MenuItem getSkinMenuButton(){
        return skinMenuButton;
    }
