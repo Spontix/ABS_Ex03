@@ -7,8 +7,10 @@ import generatedEx3.AbsLoan;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,9 +21,6 @@ public class XmlSerialization{
     private final static String JAXB_XML_GAME_PACKAGE_NAME = "generatedEx3";
 
     public static Bank addToBank(String contentType,InputStream inputStream,Bank bank,String customerName) throws Exception {
-        if(!contentType.endsWith("xml"))
-            throw new Exception(" ");
-        else {
             try {
                 deserializeFrom(inputStream,bank,customerName);
             }
@@ -29,7 +28,6 @@ public class XmlSerialization{
             {
                 e.printStackTrace();
             }
-        }
         return bank;
     }
 

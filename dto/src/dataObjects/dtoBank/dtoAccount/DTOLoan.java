@@ -31,7 +31,7 @@ public class DTOLoan {
     protected int endedYaz;
     protected int inRiskCounter;
     protected int windowOfPaymentCounter=1;
-    protected StringProperty massagesProperty=new SimpleStringProperty();
+    protected SimpleStringProperty massagesProperty=new SimpleStringProperty();
     protected int totalInterestPayTillEnd;
     protected int totalInterestPayTillNow;
     protected int totalCapitalPayTillEnd;
@@ -123,6 +123,10 @@ public class DTOLoan {
             return loanStatus.operationThree(this);
         return loanStatus.operationTwo(this);
 
+    }
+
+    public StringProperty getMassagesProperty(){
+        return massagesProperty;
     }
 
     public DTOLoanStatus getStatusOperation(){

@@ -6,22 +6,25 @@ import absController.login.LoginController;
 import dataObjects.dtoBank.dtoAccount.DTOLoanStatus;
 import dataObjects.dtoCustomer.DTOCustomer;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
+import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
+import util.Constants;
+import util.http.HttpClientUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -67,6 +70,10 @@ public class ABSController extends HelperFunction implements Initializable {
     protected BorderPane myBorderPane;
 
     @FXML
+    protected Button loadFileButton;
+
+
+    @FXML
     void contextMenuRequested(ContextMenuEvent event) {
     }
 
@@ -78,13 +85,48 @@ public class ABSController extends HelperFunction implements Initializable {
         customersListController=myFXMLLoader("CustomerListViewer.fxml");
 
         loginController.setAbsController(this);
+        loadFileButton.setOnAction(e -> {
+            String file = fileChooserImplementation(e);
+            String finalUrl = HttpUrl
+                    .parse(Constants.UPLOAD_FILE_PAGE)
+                    .newBuilder()
+                    .build()
+                    .toString();
+            RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                    .addFormDataPart("file1",file,
+                            RequestBody.create(MediaType.parse("application/octet-stream"),
+                                    new File(file)))
+                    .build();
+            HttpClientUtil.runAsyncPost(finalUrl, new Callback() {
 
+                @Override
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                    Platform.runLater(() ->
+                            filePath.setText("Something went wrong: " + e.getMessage())
+                    );
+                }
 
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                    if (response.code() != 200) {
+                        String responseBody = response.body().string();
+                        Platform.runLater(() ->
+                                filePath.setText("Something went wrong: " + responseBody)
+                        );
+                    } else {
+                        Platform.runLater(() -> {
+                            filePath.setText("File Path : " + file);
+                        });
+                    }
+                    response.close();
+                }
+            },body);
+        });
     }
 
-    public void afterLoginClick(String name){
+    public void afterLoginClickCustomer(String name) {
         CustomerController customerController = myFXMLLoader("MyCustomerView.fxml");
-        customersController=new ArrayList<>();
+        customersController = new ArrayList<>();
         customersController.add(customerController);
         myBorderPane.setCenter(customerController.customerTablePane);
         final ObservableList<String> categories = FXCollections.observableArrayList();
@@ -95,6 +137,17 @@ public class ABSController extends HelperFunction implements Initializable {
         viewBy.setVisible(true);
         currentYaz.setVisible(true);
         filePath.setVisible(true);
+        loadFileButton.setVisible(true);
+
+    }
+
+    private String fileChooserImplementation(javafx.event.ActionEvent e){
+        Node node = (Node) e.getSource();
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML","*.xml"));
+        fileChooser.setTitle("Load File");
+        return fileChooser.showOpenDialog(node.getScene().getWindow()).getPath();
+    }
 
 
         /*showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getLoansList(),false);
@@ -120,7 +173,7 @@ public class ABSController extends HelperFunction implements Initializable {
                 loansListControllerHandler(loansListController);
             }
         });*/
-    }
+
 
 
    /* @Override

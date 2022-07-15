@@ -1,6 +1,7 @@
 package servlets.admin;
 
 import com.google.gson.Gson;
+import dataObjects.dtoBank.dtoAccount.DTOCustomersList;
 import dataObjects.dtoBank.dtoAccount.DTOInlay;
 import dataObjects.dtoCustomer.DTOCustomer;
 import jakarta.servlet.annotation.WebServlet;
@@ -26,11 +27,10 @@ public class CustomersInformationServlet extends HttpServlet {
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
-        List<DTOCustomer> dtoCustomersList=ServletUtils.getCustomers(getServletContext());
-        UIInterfaceLogic bank = ServletUtils.getBank(getServletContext());
-        //ArrayList<DTOCustomer> customersList = bank.getCustomers();
-        String json = GSON_INSTANCE.toJson(bank);
-        //String json = GSON_INSTANCE.toJson(new DTOInlay());
+        ArrayList<DTOCustomer> dtoCustomers=ServletUtils.getCustomers(getServletContext());
+        DTOCustomersList dtoCustomersList=new DTOCustomersList();
+        dtoCustomersList.setDTOCustomers(dtoCustomers);
+        String json = GSON_INSTANCE.toJson(dtoCustomersList);
         out.println(json);
         out.flush();
     }

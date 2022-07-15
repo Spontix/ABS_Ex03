@@ -17,6 +17,8 @@ import static constants.Constants.INT_PARAMETER_ERROR;
 public class ServletUtils {
 
 	private static final String BANK_ATTRIBUTE_NAME = "bank";
+	private static final String ADMIN_ATTRIBUTE_NAME = "admin";
+
 	private static final String CUSTOMERS_ATTRIBUTE_NAME = "customersList";
 	private static final String INLAYS_ATTRIBUTE_NAME = "inlaysList";
 	public final static Gson GSON_INSTANCE = new Gson();
@@ -40,6 +42,16 @@ public class ServletUtils {
 
 	public static ArrayList<DTOCustomer> getCustomers(ServletContext servletContext) {
 		return getBank(servletContext).getCustomers();
+	}
+
+	public static boolean isAdminLoggedIn(ServletContext servletContext) {
+		synchronized (bankManagerLock) {
+			if (servletContext.getAttribute(ADMIN_ATTRIBUTE_NAME) == null) {
+				servletContext.setAttribute(ADMIN_ATTRIBUTE_NAME, true);
+				return false;
+			}
+			return (boolean) servletContext.getAttribute(ADMIN_ATTRIBUTE_NAME);
+		}
 	}
 
 	public static ArrayList<DTOInlay> getInlays(ServletContext servletContext) {

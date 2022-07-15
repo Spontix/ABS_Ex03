@@ -51,7 +51,7 @@ public class LoginController {
 
         //noinspection ConstantConditions
         String finalUrl = HttpUrl
-                .parse(Constants.LOGIN_PAGE)
+                .parse(Constants.LOGIN_PAGE_CUSTOMER)
                 .newBuilder()
                 .addQueryParameter("username", userName)
                 .build()
@@ -59,7 +59,7 @@ public class LoginController {
 
         updateHttpStatusLine("New request is launched for: " + finalUrl);
 
-        HttpClientUtil.runAsync(finalUrl, new Callback() {
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
 
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
@@ -77,7 +77,7 @@ public class LoginController {
                     );
                 } else {
                     Platform.runLater(() -> {
-                        absController.afterLoginClick(userName);
+                        absController.afterLoginClickCustomer(userName);
                     });
                 }
             }

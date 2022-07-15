@@ -1,5 +1,6 @@
 package servlets.admin;
 
+import dataObjects.dtoBank.dtoAccount.DTOLoansList;
 import dataObjects.dtoCustomer.DTOCustomer;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,7 +23,9 @@ public class LoansInformationServlet extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         UIInterfaceLogic bank = ServletUtils.getBank(getServletContext());
-        String json = GSON_INSTANCE.toJson(bank.getLoansList());
+        DTOLoansList dtoLoansList=new DTOLoansList();
+        dtoLoansList.setDTOLoans(bank.getLoansList());
+        String json = GSON_INSTANCE.toJson(dtoLoansList);
         out.println(json);
         out.flush();
     }
