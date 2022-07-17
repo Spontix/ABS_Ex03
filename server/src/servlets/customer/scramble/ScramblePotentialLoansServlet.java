@@ -2,6 +2,7 @@ package servlets.customer.scramble;
 
 import dataObjects.dtoBank.dtoAccount.DTOInlay;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
+import dataObjects.dtoBank.dtoAccount.DTOLoansList;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +24,7 @@ import static utils.ServletUtils.GSON_INSTANCE;
 @WebServlet(name = " ScramblePotentialLoansCustomerServlet",urlPatterns = "/customer/scramble/potentialLoans")
 public class ScramblePotentialLoansServlet extends HttpServlet {
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         UIInterfaceLogic bankManager = ServletUtils.getBank(getServletContext());
         List<DTOInlay> dtoInlayList=ServletUtils.getInlays(getServletContext());
         String customerFromSession = SessionUtils.getCustomer(request);
@@ -44,7 +45,8 @@ public class ScramblePotentialLoansServlet extends HttpServlet {
                 e.printStackTrace();
             }
             dtoInlayList.add(inlay);
-            List<DTOLoan> potentialLoans = bankManager.loansSustainInlayDK(dtoInlay);
+            DTOLoansList potentialLoans = new DTOLoansList();
+            potentialLoans.setDTOLoans(bankManager.loansSustainInlayDK(dtoInlay));
             String json = GSON_INSTANCE.toJson(potentialLoans);
             out.println(json);
             out.flush();

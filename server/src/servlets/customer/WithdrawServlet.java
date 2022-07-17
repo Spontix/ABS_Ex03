@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 import static constants.Constants.AMOUNT;
+import static utils.ServletUtils.GSON_INSTANCE;
 
 @WebServlet(name = "WithdrawCustomerServlet",urlPatterns = "/customer/withdraw")
 public class WithdrawServlet extends HttpServlet {
@@ -34,6 +35,10 @@ public class WithdrawServlet extends HttpServlet {
                 int sumToDraw=getAmountFromUser(sumToDrawFromParameter);
                 DTOMovement dtoMovement=bankManager.movementBuildToCustomer(dtoCustomer,sumToDraw, "-");
                 bankManager.cashWithdrawal(dtoCustomer,sumToDraw);
+                response.setContentType("application/json");
+                String json = GSON_INSTANCE.toJson(dtoMovement);
+                out.println(json);
+                out.flush();
                 response.setStatus(HttpServletResponse.SC_OK);
             } catch (NumberFormatException exception) {
                 out.println("Incorrect input,please note that you entered an integer number!!\n");

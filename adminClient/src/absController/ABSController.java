@@ -83,10 +83,7 @@ public class ABSController extends HelperFunction implements Initializable {
         adminController = myFXMLLoader("MyAdminView.fxml");
         customersListController=myFXMLLoader("CustomerListViewer.fxml");
 
-        adminController.increaseYazButton.setOnAction(e-> {
-            YazLogicDesktopIncreaseServlet();
-        });
-
+        adminController.increaseYazButton.setOnAction(e-> YazLogicDesktopIncreaseServlet());
         loginController.setAbsController(this);
         onLoadFileClick();
         onLoanClickProperty(loansListController,null);
@@ -104,7 +101,7 @@ public class ABSController extends HelperFunction implements Initializable {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Platform.runLater(() ->
-                        myAlert("Something went wrong: " + e.getMessage())
+                        popupMessage("Response failed" ,"Something went wrong: " + e.getMessage())
                 );
             }
 
@@ -113,7 +110,7 @@ public class ABSController extends HelperFunction implements Initializable {
                 String responseBody = response.body().string();
                 if (response.code() != 200) {
                     Platform.runLater(() ->
-                            myAlert(responseBody)
+                            popupMessage("Increase yaz Error",responseBody)
                     );
                 } else {
                     Platform.runLater(() -> {
@@ -152,7 +149,7 @@ public class ABSController extends HelperFunction implements Initializable {
                     if (response.code() != 200) {
                         String responseBody = response.body().string();
                         Platform.runLater(() ->
-                            myAlert(responseBody)
+                            popupMessage("Load File Error",responseBody)
                         );
                     } else {
                         Platform.runLater(() -> {
@@ -165,14 +162,6 @@ public class ABSController extends HelperFunction implements Initializable {
         });
     }
 
-    private void myAlert(String body){
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Load File Error");
-        alert.setHeaderText("Could not open your file");
-        alert.setContentText(body);
-
-        alert.showAndWait();
-    }
 
     public void afterLoginClickAdmin(String name) {
         myBorderPane.setCenter(adminController.adminGridPane);
@@ -312,9 +301,7 @@ public class ABSController extends HelperFunction implements Initializable {
                 customersListController.customersAccordionInformation.setVisible(true);
                 DTOCustomer localCustomer = customersListController.customersListView.getSelectionModel().getSelectedItem();
                 customersListController.movementsTableView.setItems(FXCollections.observableArrayList(localCustomer.getMovements()));
-                customersListController.loansListLoanerView.getItems().clear();
                 showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,customersListController.loansListLoanerView,localCustomer.getName());
-                customersListController.loansListLenderView.getItems().clear();
                 showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,customersListController.loansListLenderView,localCustomer.getName());
             }
         });

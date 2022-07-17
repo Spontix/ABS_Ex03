@@ -23,16 +23,26 @@ public class Constants {
     private final static String CONTEXT_PATH_ADMIN = "/admin";
     private final static String FULL_SERVER_PATH_ADMIN = BASE_URL + CONTEXT_PATH_ADMIN;
 
-    public final static String LOGIN_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/login";
     public final static String LOGIN_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/login";
     public final static String AS_LOANER_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/getLoansAsLoaner";
     public final static String AS_BORROWER_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/getLoansAsBorrower";
+    public final static String GET_CUSTOMER_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/get-customer";
+    public final static String DEPOSIT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/deposit";
+    public final static String WITHDRAWAL_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/withdraw";
+    public final static String POTENTIAL_LOANS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/scramble/potentialLoans";
+    public final static String SELECTED_LOANS_LOAN_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/scramble/selectedLoans";
 
+
+
+
+    public final static String LOGIN_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/login";
     public final static String LOANS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/loansInformation";
     public final static String CUSTOMERS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/customersInformation";
     public final static String YAZ_INCREASE_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/yazUnitProgress";
 
     public final static String PAYMENT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loanPayment";
+    public final static String MOVEMENTS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/movements";
+
 
     public final static String UPLOAD_FILE_PAGE = FULL_SERVER_PATH_CUSTOMER + "/upload-file";
 

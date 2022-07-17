@@ -42,13 +42,4 @@ public class DTOMovement {
         return operation;
     }
 
-    @Override
-    public String toString(){
-        return "-------------------------------\n" +
-                "To do yaz time: " + toDoYazTime + "\n" +
-                "Sum: " + sum + "\n" +
-                "Operation: " + operation + "\n" +
-                "Sum before operation: " + sumBeforeOperation + "\n" +
-                "Sum after operation: " + sumAfterOperation + "\n";
-    }
 }

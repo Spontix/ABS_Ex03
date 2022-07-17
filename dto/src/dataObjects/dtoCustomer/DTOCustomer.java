@@ -95,4 +95,8 @@ public class DTOCustomer implements DTOAccount {
         dtoCustomer.inlays=customer.inlays;
         return dtoCustomer;
     }
+
+    public void addAmount(int amount){
+        this.amount+=amount;
+    }
 }

@@ -17,5 +17,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="okHttp" level="application" />
+    <orderEntry type="module" module-name="dto" />
   </component>
 </module>

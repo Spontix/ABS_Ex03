@@ -1,7 +1,7 @@
 package servlets.customer;
 
-import dataObjects.dtoBank.dtoAccount.DTOLoan;
-import dataObjects.dtoBank.dtoAccount.DTOLoansList;
+import dataObjects.dtoBank.dtoAccount.DTOMovement;
+import dataObjects.dtoBank.dtoAccount.DTOMovementsList;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,8 +17,9 @@ import java.util.ArrayList;
 import static constants.Constants.USERNAME;
 import static utils.ServletUtils.GSON_INSTANCE;
 
-@WebServlet(name = "LoansAsLoanerCustomerServlet",urlPatterns = "/customer/getLoansAsLoaner")
-public class LoansAsLoaner extends HttpServlet {
+
+@WebServlet(name = "getCustomerServlet",urlPatterns = "/customer/get-customer")
+public class CustomerServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String customerFromSession = SessionUtils.getCustomer(request);
@@ -26,9 +27,7 @@ public class LoansAsLoaner extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         UIInterfaceLogic bank = ServletUtils.getBank(getServletContext());
-        DTOLoansList dtoLoansList=new DTOLoansList();
-        dtoLoansList.setDTOLoans((ArrayList<DTOLoan>) bank.getCustomerByName(usernameFromParameter.equals("")?customerFromSession:usernameFromParameter).getLoaner());
-        String json = GSON_INSTANCE.toJson(dtoLoansList);
+        String json = GSON_INSTANCE.toJson(bank.getCustomerByName(customerFromSession));
         out.println(json);
         out.flush();
     }

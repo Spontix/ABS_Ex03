@@ -11,20 +11,25 @@ public class DTOInlay {
     protected double minInterestYaz;
     protected int minYazTime;
     protected int maximumLoansOpenToTheBorrower;
-
+    protected int maximumLoanOwnershipPercentage;
     public DTOInlay(){
 
     }
 
      //////////copy of inlayBuild. I had a new member maximumLoansOpenToTheBorrower to DTOInlay and creat Get and Set methods//////////
-     public DTOInlay(DTOAccount customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+     public DTOInlay(DTOAccount customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower,int maximumLoanOwnershipPercentage) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         checksInvestAmount(customer, investAmount);
         this.investAmount=investAmount;
         this.category=category;
         this.minInterestYaz=minInterestYaz;
         this.maximumLoansOpenToTheBorrower=maximumLoansOpenToTheBorrower;
+        this.maximumLoanOwnershipPercentage=maximumLoanOwnershipPercentage;
         this.minYazTime=minYazTime;
         this.name=name;
+    }
+
+    public int getMaximumLoanOwnershipPercentage(){
+        return maximumLoanOwnershipPercentage;
     }
 
     public void checksInvestAmount(DTOAccount customer, int investAmount) {

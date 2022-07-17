@@ -43,7 +43,7 @@ public class ScrambleSelectedLoansServlet extends HttpServlet {
        }
        synchronized (this) {
            try {
-               bankManager.addMovementPerLoanFromInlayDK(dtoInlay, listOfDTOLoans, dtoInlay.getInvestAmount(), dtoInlay.getMaximumLoansOpenToTheBorrower());
+               bankManager.addMovementPerLoanFromInlayDK(dtoInlay, listOfDTOLoans, dtoInlay.getInvestAmount(), dtoInlay.getMaximumLoanOwnershipPercentage());
                bankManager.yazProgressLogicDesktop();
                dtoInlayList.remove(dtoInlay);
            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {

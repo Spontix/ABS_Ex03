@@ -1,9 +1,11 @@
 package absController;
 
 
-
+import com.google.gson.Gson;
 import absController.login.LoginController;
 import dataObjects.dtoBank.dtoAccount.DTOLoanStatus;
+import dataObjects.dtoBank.dtoAccount.DTOLoansList;
+import dataObjects.dtoBank.dtoAccount.DTOMovementsList;
 import dataObjects.dtoCustomer.DTOCustomer;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
 import javafx.application.Platform;
@@ -34,10 +36,12 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
+import static util.Constants.GSON_INSTANCE;
+import static util.Constants.MOVEMENTS_PAGE_CUSTOMER;
+
 public class ABSController extends HelperFunction implements Initializable {
 
-    private List<CustomerController> customersController;
-    private AdminController adminController;
+    private CustomerController customerController;
     private LoansListController loansListController;
     private CustomersListController customersListController;
     private LoginController loginController;
@@ -85,6 +89,11 @@ public class ABSController extends HelperFunction implements Initializable {
         customersListController=myFXMLLoader("CustomerListViewer.fxml");
 
         loginController.setAbsController(this);
+        onLoadFileButton();
+
+    }
+
+    private void onLoadFileButton(){
         loadFileButton.setOnAction(e -> {
             String file = fileChooserImplementation(e);
             String finalUrl = HttpUrl
@@ -116,6 +125,9 @@ public class ABSController extends HelperFunction implements Initializable {
                     } else {
                         Platform.runLater(() -> {
                             filePath.setText("File Path : " + file);
+                            showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,customerController.LenderLoansTableListView,"");
+                            showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,customerController.loanerLoansListView,"");
+                            showMovementsInformationServlet("");//ToDo this is supposed to be in the pull methode
                         });
                     }
                     response.close();
@@ -125,9 +137,7 @@ public class ABSController extends HelperFunction implements Initializable {
     }
 
     public void afterLoginClickCustomer(String name) {
-        CustomerController customerController = myFXMLLoader("MyCustomerView.fxml");
-        customersController = new ArrayList<>();
-        customersController.add(customerController);
+        customerController = myFXMLLoader("MyCustomerView.fxml");
         myBorderPane.setCenter(customerController.customerTablePane);
         final ObservableList<String> categories = FXCollections.observableArrayList();
         customerController.categoriesList.getItems().clear();
@@ -138,6 +148,50 @@ public class ABSController extends HelperFunction implements Initializable {
         currentYaz.setVisible(true);
         filePath.setVisible(true);
         loadFileButton.setVisible(true);
+
+        /*showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,customerController.LenderLoansTableListView,name);
+        showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,customerController.loanerLoansListView,name);
+        showMovementsInformationServlet(name);*/
+    }
+
+    private void showMovementsInformationServlet(String customerName){
+        String finalUrl = HttpUrl
+                .parse(MOVEMENTS_PAGE_CUSTOMER)
+                .newBuilder()
+                .addQueryParameter("username", customerName)
+                .build()
+                .toString();
+
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        filePath.setText("Something went wrong: " + e.getMessage())
+                );
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                            filePath.setText("Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        String rawBody = null;
+                        try {
+                            rawBody = response.body().string();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        DTOMovementsList dtoMovementsList=GSON_INSTANCE.fromJson(rawBody, DTOMovementsList.class);
+                        customerController.customerMovments.setItems(FXCollections.observableArrayList(dtoMovementsList.getDtoMovements()));
+                    });
+                }
+            }
+        });
 
     }
 
@@ -150,30 +204,45 @@ public class ABSController extends HelperFunction implements Initializable {
     }
 
 
-        /*showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getLoansList(),false);
-        showLoanInformationInAdminAndCustomerView(customerController.loanerLoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()),false);
-        showLoanInformationInAdminAndCustomerView(customerController.LenderLoansTableListView, bank.getCustomerBorrowersList(dtoCustomer.getCustomerName()),false);
-        showLoanInformationInAdminAndCustomerView(customerController.loansListController.LoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()), true);
-        customerController.customerMovments.setItems(FXCollections.observableArrayList(dtoCustomer.getMovements()));
-        showCustomerInformationAdminView(customersListController.customersListView, bank.getCustomers());*/
+    private void showLoanInformationInAdminAndCustomerViewServlet(String url,ListView<DTOLoan> loanListView,String customerName){
+        String finalUrl = HttpUrl
+                .parse(url)
+                .newBuilder()
+                .addQueryParameter("username", customerName)
+                .build()
+                .toString();
 
-        /*customerController.errorTextArea.setVisible(false);
-        customerController.allInlayListView.getItems().clear();
-        customerController.chosenInlayListView.getItems().clear();
-        customerController.allInlayListView.setVisible(false);
-        customerController.chosenInlayListView.setVisible(false);
-        customerController.chooseLoanButton.setVisible(false);
-        customerController.unChosenLoanButton.setVisible(false);
-        customerController.doneChosenLoanButton.setVisible(false);*/
-        //loansListControllerHandler(customerController.loansListController);
-            /*if(bank!=null) {
-                customersListController.customersAccordionInformation.setVisible(false);
-                showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,bank.getLoansList(),false);
-                showCustomerInformationAdminView( customersListController.customersListView,bank.getCustomers());
-                loansListControllerHandler(loansListController);
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        filePath.setText("Something went wrong: " + e.getMessage())
+                );
             }
-        });*/
 
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                            filePath.setText("Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        String rawBody = null;
+                        try {
+                            rawBody = response.body().string();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        DTOLoansList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOLoansList.class);
+                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),false);
+                    });
+                }
+            }
+        });
+    }
 
 
    /* @Override
@@ -421,7 +490,7 @@ public class ABSController extends HelperFunction implements Initializable {
             }
         }
         return selectedLoan;
-    }
+    }*/
 
     private void clearComponents(LoansListController loansListController){
         loansListController.activeStatusTableView.getItems().clear();
@@ -440,7 +509,8 @@ public class ABSController extends HelperFunction implements Initializable {
         loansListController.startYazLabelFI.setText("");
         loansListController.endYazColumnFI.setText("");
         loansListController.startYazLabelFI.setText("");
-    }*/
+    }
+
    public MenuItem getSkinMenuButton(){
        return skinMenuButton;
    }

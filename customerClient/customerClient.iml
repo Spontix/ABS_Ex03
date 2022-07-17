@@ -19,5 +19,14 @@
     </orderEntry>
     <orderEntry type="module" module-name="clientUtils" />
     <orderEntry type="library" name="okHttp" level="application" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../server/gson-2.8.8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

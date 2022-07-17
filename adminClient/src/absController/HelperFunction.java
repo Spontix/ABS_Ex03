@@ -47,7 +47,7 @@ public class HelperFunction {
     }
 
     public void popupMessage (String title, String contentText) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setContentText(contentText);
         alert.showAndWait();
