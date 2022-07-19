@@ -14,23 +14,37 @@ import java.util.List;
 
 public class HelperFunction {
 
-    protected void showLoanInformationInAdminAndCustomerView(ListView<DTOLoan> listView, List<DTOLoan> loanList, Boolean isCustomerListViewInPayment) {
-        listView.getItems().clear();
-        if(isCustomerListViewInPayment){
-            for (DTOLoan dtoLoan:loanList) {
-                if(dtoLoan.getLoanStatus()!= DTOLoanStatus.NEW && dtoLoan.getLoanStatus()!=DTOLoanStatus.FINISHED && dtoLoan.getLoanStatus()!=DTOLoanStatus.PENDING )
-                       listView.getItems().add(dtoLoan);
+    static protected void showLoanInformationInAdminAndCustomerView(ListView<DTOLoan> listView, List<DTOLoan> loanList) {
+        int index;
+        int customersListViewSize=listView.getItems().size();
+        //if(loanList.size()!=0) {
+            for (index = 0; index < customersListViewSize; index++) {
+                DTOLoan dtoLoanToDelete = listView.getItems().get(index);
+                listView.getItems().add(index, loanList.get(index));
+                listView.getItems().remove(dtoLoanToDelete);
             }
-        }
-        else {
-            listView.getItems().addAll(loanList);
-        }
+            while (index < loanList.size()) {
+                listView.getItems().add(loanList.get(index));
+                index++;
+            }
+       // }
     }
 
-    protected void showCustomerInformationAdminView(ListView<DTOCustomer> listView,  List<DTOCustomer> list){
-        listView.getItems().clear();
-        listView.getItems().addAll(list);
-    }
+   static protected void showCustomerInformationAdminView(ListView<DTOCustomer> listView,  List<DTOCustomer> list){
+       int index;
+       int customersListViewSize=listView.getItems().size();
+       //if(list.size()!=0) {
+           for (index = 0; index < customersListViewSize; index++) {
+               DTOCustomer dtoCustomerToDelete = listView.getItems().get(index);
+               listView.getItems().add(index, list.get(index));
+               listView.getItems().remove(dtoCustomerToDelete);
+           }
+           while (index < list.size()) {
+               listView.getItems().add(list.get(index));
+               index++;
+           }
+       //}
+   }
 
 
     protected  <T> T myFXMLLoader(String resource){
@@ -46,7 +60,7 @@ public class HelperFunction {
         return fxmlLoader.getController();
     }
 
-    public void popupMessage (String title, String contentText) {
+    static public void popupMessage (String title, String contentText) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setContentText(contentText);

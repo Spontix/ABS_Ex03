@@ -8,6 +8,7 @@ import logic.bank.account.Account;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 //Eliran
 public class Customer extends DTOCustomer implements Account {
@@ -41,7 +42,6 @@ public class Customer extends DTOCustomer implements Account {
     public void setBorrower(List<DTOLoan> borrower) {
         this.borrower = borrower;
     }
-
 
     private Customer() {
 

@@ -4,6 +4,7 @@ package logic.bank.account;
 
 
 import dataObjects.dtoBank.dtoAccount.*;
+import dataObjects.dtoCustomer.DTOCustomer;
 import javafx.scene.control.ListView;
 
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class Loan extends DTOLoan {
         this.interestPerPayment=interestPerPaymentLoan;
     }
 
-    public void setListOfAccompanied(ArrayList<DTOAccount> accompanied) {
+    public void setListOfAccompanied(ArrayList<DTOCustomer> accompanied) {
         this.listOfAccompanied=accompanied;
     }
 

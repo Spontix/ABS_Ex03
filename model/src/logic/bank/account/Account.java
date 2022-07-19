@@ -22,7 +22,6 @@ public interface Account extends DTOAccount {
 
     void setBorrower(List<DTOLoan> borrowers);
 
-
     void cashDeposit(int sum);
 
     void cashWithdrawal(int sum);

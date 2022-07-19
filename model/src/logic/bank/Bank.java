@@ -1,5 +1,6 @@
 package logic.bank;
 
+import dataObjects.dtoBank.DTOBank;
 import dataObjects.dtoBank.dtoAccount.*;
 import dataObjects.dtoCustomer.DTOCustomer;
 import javafx.scene.control.ListView;
@@ -95,7 +96,7 @@ public class Bank implements UIInterfaceLogic {
     }
 
     @Override
-    public Inlay inlayBuild(DTOAccount customer, int investAmount, String category, double minInterestYaz, int minYazTime) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+    public Inlay inlayBuild(DTOCustomer customer, int investAmount, String category, double minInterestYaz, int minYazTime) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         Inlay inlay = (Inlay) createInstance(Inlay.class);
         checksInvestAmount(customer, investAmount);
         inlay.setInvestAmount(investAmount);
@@ -110,7 +111,7 @@ public class Bank implements UIInterfaceLogic {
 
     @Override
     public //////////copy of inlayBuild. I had a new member maximumLoansOpenToTheBorrower to DTOInlay and creat Get and Set methods//////////
-    Inlay inlayBuildForDK(DTOAccount customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+    Inlay inlayBuildForDK(DTOCustomer customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         Inlay inlay = (Inlay) createInstance(Inlay.class);
         checksInvestAmount(customer, investAmount);
         inlay.setInvestAmount(investAmount);
@@ -123,7 +124,7 @@ public class Bank implements UIInterfaceLogic {
     }
 
     @Override
-    public void checksInvestAmount(DTOAccount customer, int investAmount) {
+    public void checksInvestAmount(DTOCustomer customer, int investAmount) {
         if (investAmount > customer.getAmount() || investAmount < 0) {
             throw new RuntimeException("The investment amount is above the amount balance or a negative one. please try again!");
         }
@@ -406,7 +407,7 @@ public class Bank implements UIInterfaceLogic {
         int remainderByModulo = 0;//מחזיק את השארית
         DTOInlay dtoInlayToBeAddToTheLoan;
         int investAmountCounterThatGoingToBeInsertToTheCustomer = 0;
-        Account customer = (Account) this.getRealCustomerByName(dtoInlay.getName());//הלקוח שנותן כסף(logic)
+        Customer customer =  this.getRealCustomerByName(dtoInlay.getName());//הלקוח שנותן כסף(logic)
         Loan loan;//משתנה הלוואה
         ArrayList<DTOMovement> listOfDTOMovements = new ArrayList<>();
         DTOMovement dtoMovement;//the movement that i will add to the list ot the DTOmovements that i will return to the console that the console will show the list
@@ -444,7 +445,7 @@ public class Bank implements UIInterfaceLogic {
                 }
                 //////////////////Documentation: Check if the client is not already on the list of loaners..................\\\\\\\\\\\\\\\\
                 boolean customerAlreadyExistInListOfAccompanied = false;
-                for (DTOAccount account : loan.getListOfAccompanied()) {
+                for (DTOCustomer account : loan.getListOfAccompanied()) {
                     if (account == customer) {
                         customerAlreadyExistInListOfAccompanied = true;
                         break;
@@ -525,7 +526,7 @@ public class Bank implements UIInterfaceLogic {
                 }
                 //////////////////Documentation: Check if the client is not already on the list of loaners..................\\\\\\\\\\\\\\\\
                 boolean customerAlreadyExistInListOfAccompanied = false;
-                for (DTOAccount account : loan.getListOfAccompanied()) {
+                for (DTOCustomer account : loan.getListOfAccompanied()) {
                     if (account == (DTOAccount)customer) {
                         customerAlreadyExistInListOfAccompanied = true;
                         break;
@@ -533,6 +534,7 @@ public class Bank implements UIInterfaceLogic {
                 }
                 if (!customerAlreadyExistInListOfAccompanied)
                     loan.getListOfAccompanied().add(customer);//מוסיף אותו כמלווה להלוואה
+
                 loan.getListOfInlays().add(dtoInlayToBeAddToTheLoan);//מוסיף את השיבוץ החדש להלוואה עם הסכום שהוא הלווה
                 if (loan.getStatusOperation().equals(DTOLoanStatus.NEW)) {
                     loan.setLoanStatus(DTOLoanStatus.PENDING);

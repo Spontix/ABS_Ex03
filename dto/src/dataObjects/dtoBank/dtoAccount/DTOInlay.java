@@ -17,7 +17,7 @@ public class DTOInlay {
     }
 
      //////////copy of inlayBuild. I had a new member maximumLoansOpenToTheBorrower to DTOInlay and creat Get and Set methods//////////
-     public DTOInlay(DTOAccount customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower,int maximumLoanOwnershipPercentage) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+     public DTOInlay(DTOCustomer customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower,int maximumLoanOwnershipPercentage) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         checksInvestAmount(customer, investAmount);
         this.investAmount=investAmount;
         this.category=category;
@@ -32,7 +32,7 @@ public class DTOInlay {
         return maximumLoanOwnershipPercentage;
     }
 
-    public void checksInvestAmount(DTOAccount customer, int investAmount) {
+    public void checksInvestAmount(DTOCustomer customer, int investAmount) {
         if (investAmount > customer.getAmount() || investAmount < 0) {
             throw new RuntimeException("The investment amount is above the amount balance or a negative one. please try again!");
         }

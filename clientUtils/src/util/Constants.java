@@ -39,6 +39,8 @@ public class Constants {
     public final static String LOANS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/loansInformation";
     public final static String CUSTOMERS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/customersInformation";
     public final static String YAZ_INCREASE_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/yazUnitProgress";
+    public final static String BANK_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/bankInformation";
+
 
     public final static String PAYMENT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loanPayment";
     public final static String MOVEMENTS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/movements";

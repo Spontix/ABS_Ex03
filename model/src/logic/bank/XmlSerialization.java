@@ -1,6 +1,7 @@
 package logic.bank;
 
 
+import dataObjects.dtoBank.dtoAccount.DTOLoan;
 import generatedEx3.AbsDescriptor;
 import generatedEx3.AbsLoan;
 
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -35,7 +37,7 @@ public class XmlSerialization{
         JAXBContext jc = JAXBContext.newInstance(JAXB_XML_GAME_PACKAGE_NAME);
         Unmarshaller u = jc.createUnmarshaller();
         AbsDescriptor absDescriptor = (AbsDescriptor) u.unmarshal(in);
-        checksIfTheInformationOfTheFileAreCorrect(absDescriptor);
+        checksIfTheInformationOfTheFileAreCorrect(absDescriptor,bank);
         absDescriptor.getAbsLoans().getAbsLoan().forEach(loan -> {
             try {
                 bank.loanBuilderFileUploadServer(loan.getId(), customerName, loan.getAbsCategory(), loan.getAbsCapital(), loan.getAbsTotalYazTime(), loan.getAbsPaysEveryYaz(), loan.getAbsIntristPerPayment());
@@ -47,7 +49,7 @@ public class XmlSerialization{
 
     }
 
-    private static void checksIfTheInformationOfTheFileAreCorrect(AbsDescriptor absDescriptor) throws Exception {
+    private static void checksIfTheInformationOfTheFileAreCorrect(AbsDescriptor absDescriptor,Bank bank) throws Exception {
         List<Object> objects=absDescriptor.getAbsLoans().getAbsLoan().stream().filter(l -> absDescriptor.getAbsCategories().getAbsCategory().contains(l.getAbsCategory())).collect(Collectors.toList());
         if(objects.size()!=absDescriptor.getAbsLoans().getAbsLoan().size()){
             throw new Exception("This category does not exist : " + convertToNameOfCategories(objects));
@@ -56,16 +58,17 @@ public class XmlSerialization{
         if(objects.size()>0){
             throw new Exception("The division between totalYazNumber to paysEveryYaz is not an integer in : " + convertToNameOfLoans(objects));
         }
-        objects=absDescriptor.getAbsLoans().getAbsLoan().stream().filter(l1->absDescriptor.getAbsLoans().getAbsLoan().stream().filter(l2->l2.getId().equals(l1.getId())).count()>1).collect(Collectors.toList());
+        objects=bank.getLoansList().stream().filter(l1->absDescriptor.getAbsLoans().getAbsLoan().stream().filter(l2-> Objects.equals(l2.getId(), l1.getId())).count()>=1).collect(Collectors.toList());
         if(objects.size()!=0){
-            throw new Exception("This client already exist : "+ convertToNameOfLoans(objects));
+            throw new Exception("This loan already exist : "+ convertToNameOfLoans(objects));
         }
+
     }
 
     private static String convertToNameOfLoans(List<Object> loans){
         StringBuilder string= new StringBuilder("[");
         for (Object loan:loans) {
-            string.append(((AbsLoan) loan).getId()).append("-");
+            string.append(((DTOLoan) loan).getId()).append("-");
         }
         return string.deleteCharAt(string.lastIndexOf("-")).append("]").toString();
     }

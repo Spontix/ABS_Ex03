@@ -6,7 +6,7 @@ import dataObjects.dtoBank.dtoAccount.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DTOCustomer implements DTOAccount {
+public class DTOCustomer {
 
     protected String name;
     protected int amount;
@@ -21,7 +21,6 @@ public class DTOCustomer implements DTOAccount {
         movements=new ArrayList<>();
         loaner=new ArrayList<>();
         borrower=new ArrayList<>();
-
     }
 
     public static DTOCustomer builderServer(String name) {
@@ -30,35 +29,29 @@ public class DTOCustomer implements DTOAccount {
         return dtoCustomer;
     }
 
-    @Override
+
     public int getAmount() {
         return amount;
     }
 
-    @Override
     public List<DTOMovement> getMovements(){
         return movements;
     }
 
-    @Override
     public List<DTOLoan> getLoaner() {
         return loaner;
     }
 
-    @Override
     public List<DTOLoan> getBorrower() {
         return borrower;
     }
 
-    @Override
     public List<DTOInlay> getInlays(){return inlays;}
 
-    @Override
     public String getName(){
         return name;
     }
 
-    @Override
     public int getAllOpenLoansToBorrower(){
         return (int) borrower.stream().filter(l -> l.getLoanStatus() != DTOLoanStatus.FINISHED).count();
     }

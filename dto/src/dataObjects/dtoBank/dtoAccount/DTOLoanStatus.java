@@ -1,5 +1,7 @@
 package dataObjects.dtoBank.dtoAccount;
 
+import dataObjects.dtoCustomer.DTOCustomer;
+
 public enum DTOLoanStatus {
     PENDING{
         @Override
@@ -91,7 +93,7 @@ public enum DTOLoanStatus {
             stringPrint.append("The loaners list is currently empty.");
         else {
             stringPrint.append("------------ Borrowers list ------------\n");
-            for (DTOAccount accompanied : dtoLoan.listOfAccompanied) {
+            for (DTOCustomer accompanied : dtoLoan.listOfAccompanied) {
                 int sum=dtoLoan.getListOfInlays().stream().filter(i->i.getName().equals(accompanied.getName())).mapToInt(i->i.getInvestAmount()).sum();
                 stringPrint.append(index).append(". Name: ").append(accompanied.getName()).append("\nThe invest amount: ").append(sum).append("\n");
             }

@@ -1,15 +1,13 @@
 package absController;
 
-import com.google.gson.Gson;
 import absController.login.LoginController;
-import dataObjects.dtoBank.dtoAccount.DTOCustomersList;
+import dataObjects.dtoBank.DTOBank;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
 import dataObjects.dtoBank.dtoAccount.DTOLoanStatus;
 import dataObjects.dtoBank.dtoAccount.DTOLoansList;
 import dataObjects.dtoCustomer.DTOCustomer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -24,15 +22,16 @@ import util.http.HttpClientUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static util.Constants.GSON_INSTANCE;
+import static util.Constants.REFRESH_RATE;
 
 public class ABSController extends HelperFunction implements Initializable {
+
+    private Timer timer;
+    private TimerTask listRefresher;
 
     private AdminController adminController;
     private LoansListController loansListController;
@@ -73,6 +72,24 @@ public class ABSController extends HelperFunction implements Initializable {
 
     @FXML
     void contextMenuRequested(ContextMenuEvent event) {
+    }
+
+    private void updateCustomersList(DTOBank dtoBank){
+        Platform.runLater(()->{
+            try{
+                showCustomerInformationAdminView(customersListController.customersListView,dtoBank.getAccounts());
+                showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,dtoBank.getLoans());
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void setListRefresher(){
+        listRefresher=new AdminRefresher(this::updateCustomersList);
+        timer= new Timer();
+        timer.schedule(listRefresher,REFRESH_RATE,REFRESH_RATE);
     }
 
     @Override
@@ -171,8 +188,9 @@ public class ABSController extends HelperFunction implements Initializable {
         loginBorderPane.setVisible(false);
         viewBy.setVisible(true);
         currentYaz.setVisible(true);
-        showLoanInformationInAdminAndCustomerViewServlet(Constants.LOANS_PAGE_ADMIN,loansListController.LoansListView,null);
-        showCustomerInformationAdminViewServlet();
+        /*showLoanInformationInAdminAndCustomerViewServlet(Constants.LOANS_PAGE_ADMIN,loansListController.LoansListView,null);
+        showCustomerInformationAdminViewServlet();*/
+        setListRefresher();
 
     }
 
@@ -249,14 +267,15 @@ public class ABSController extends HelperFunction implements Initializable {
                             e.printStackTrace();
                         }
                         DTOLoansList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOLoansList.class);
-                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),false);
+                        loanListView.getItems().clear();
+                        loanListView.getItems().addAll(dtoLoansList.getDTOLoans());
                     });
                 }
             }
         });
     }
 
-    private void showCustomerInformationAdminViewServlet(){
+   /* private void showCustomerInformationAdminViewServlet(){
         String finalUrl = HttpUrl
                 .parse(Constants.CUSTOMERS_PAGE_ADMIN)
                 .newBuilder()
@@ -293,7 +312,7 @@ public class ABSController extends HelperFunction implements Initializable {
                 }
             }
         });
-    }
+    }*/
 
     private void onCustomerClickProperty(){
         customersListController.customersListView.getSelectionModel().selectedItemProperty().addListener(e -> {
@@ -307,31 +326,6 @@ public class ABSController extends HelperFunction implements Initializable {
         });
 
     }
-
-        /*showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getLoansList(),false);
-        showLoanInformationInAdminAndCustomerView(customerController.loanerLoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()),false);
-        showLoanInformationInAdminAndCustomerView(customerController.LenderLoansTableListView, bank.getCustomerBorrowersList(dtoCustomer.getCustomerName()),false);
-        showLoanInformationInAdminAndCustomerView(customerController.loansListController.LoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()), true);
-        customerController.customerMovments.setItems(FXCollections.observableArrayList(dtoCustomer.getMovements()));
-        showCustomerInformationAdminView(customersListController.customersListView, bank.getCustomers());*/
-
-        /*customerController.errorTextArea.setVisible(false);
-        customerController.allInlayListView.getItems().clear();
-        customerController.chosenInlayListView.getItems().clear();
-        customerController.allInlayListView.setVisible(false);
-        customerController.chosenInlayListView.setVisible(false);
-        customerController.chooseLoanButton.setVisible(false);
-        customerController.unChosenLoanButton.setVisible(false);
-        customerController.doneChosenLoanButton.setVisible(false);*/
-        //loansListControllerHandler(customerController.loansListController);
-            /*if(bank!=null) {
-                customersListController.customersAccordionInformation.setVisible(false);
-                showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,bank.getLoansList(),false);
-                showCustomerInformationAdminView( customersListController.customersListView,bank.getCustomers());
-                loansListControllerHandler(loansListController);
-            }
-        });*/
-
 
 
    /* @Override
@@ -450,13 +444,7 @@ public class ABSController extends HelperFunction implements Initializable {
 
     }
 
-    private String fileChooserImplementation(javafx.event.ActionEvent e){
-        Node node = (Node) e.getSource();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML","*.xml"));
-        fileChooser.setTitle("Load File");
-        return fileChooser.showOpenDialog(node.getScene().getWindow()).getPath();
-    }
+
 
     protected void  addTheLoansThatShouldPayToAllTheLoansPayListView(List<DTOLoan> loansThatShouldPay){
         for (CustomerController customerController: customersController) {
@@ -525,60 +513,6 @@ public class ABSController extends HelperFunction implements Initializable {
                 }
             }
         });
-    }
-
-    private void onCustomerClickProperty(){
-        customersListController.customersListView.getSelectionModel().selectedItemProperty().addListener(e -> {
-            if(! customersListController.customersListView.getItems().isEmpty()) {
-                customersListController.customersAccordionInformation.setVisible(true);
-                DTOCustomer localCustomer = customersListController.customersListView.getSelectionModel().getSelectedItem();
-                customersListController.movementsTableView.setItems(FXCollections.observableArrayList(localCustomer.getMovements()));
-                customersListController.loansListLoanerView.getItems().clear();
-                for (DTOLoan dtoLoan:bank.getCustomerLoanersList(localCustomer.getCustomerName()))
-                    customersListController.loansListLoanerView.getItems().add(dtoLoan);
-                customersListController.loansListLenderView.getItems().clear();
-                for (DTOLoan dtoLoan:bank.getCustomerBorrowersList(localCustomer.getCustomerName()))
-                    customersListController.loansListLenderView.getItems().add(dtoLoan);
-            }
-        });
-
-    }
-
-    private void onAdminMenuItemClick(){
-        Admin.setOnAction(ie->{
-            myBorderPane.setCenter(adminController.adminGridPane);
-            viewBy.setText("Admin");
-            if(bank!=null) {
-                customersListController.customersAccordionInformation.setVisible(false);
-                showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,bank.getLoansList(),false);
-                showCustomerInformationAdminView( customersListController.customersListView,bank.getCustomers());
-                loansListControllerHandler(loansListController);
-            }
-        });
-    }
-
-    private DTOLoan loansListControllerHandler(LoansListController loansListController){
-        clearComponents(loansListController);
-        DTOLoan selectedLoan = loansListController.LoansListView.getSelectionModel().getSelectedItem();
-        if(selectedLoan!=null) {
-            loansListController.loansAccordionInformation.setVisible(true);
-            if (selectedLoan.getLoanStatus() !=DTOLoanStatus.NEW) {
-                loansListController.leftPaymentsLabel.setText("Left payments : " + String.valueOf(selectedLoan.getCapital() - selectedLoan.getCapitalSumLeftTillActive()));
-                loansListController.totalPaymentsLabel.setText("Total payments : " + String.valueOf(selectedLoan.getCapitalSumLeftTillActive()));
-                loansListController.lendersTableView.setItems(FXCollections.observableArrayList(selectedLoan.getListOfInlays()));
-                loansListController.activeStatusTableView.setItems(FXCollections.observableArrayList(selectedLoan));
-                loansListController.inRiskStatusTableView.setItems(FXCollections.observableArrayList(selectedLoan.getPaymentsInfoList()));
-                loansListController.delayedPaymentsColumnRI.setText("Delayed payments : " + String.valueOf(selectedLoan.getInRiskCounter()));
-                loansListController.totalDelayedColumnRI.setText("Total delayed : " + String.valueOf(selectedLoan.getDebt()));
-                if (selectedLoan.getLoanStatus() == DTOLoanStatus.FINISHED) {
-                    loansListController.endYazColumnFI.setVisible(true);
-                    loansListController.startYazLabelFI.setVisible(true);
-                    loansListController.endYazColumnFI.setText("End Yaz : " + String.valueOf(selectedLoan.getEndedYaz()));
-                    loansListController.startYazLabelFI.setText("Start Yaz : " + String.valueOf(selectedLoan.getStartedYazInActive()));
-                }
-            }
-        }
-        return selectedLoan;
     }
 */
 

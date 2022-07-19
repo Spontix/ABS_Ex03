@@ -111,7 +111,7 @@ public class ABSController extends HelperFunction implements Initializable {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
                     Platform.runLater(() ->
-                            filePath.setText("Something went wrong: " + e.getMessage())
+                            popupMessage("Error","Something went wrong: " + e.getMessage())
                     );
                 }
 
@@ -120,14 +120,11 @@ public class ABSController extends HelperFunction implements Initializable {
                     if (response.code() != 200) {
                         String responseBody = response.body().string();
                         Platform.runLater(() ->
-                                filePath.setText("Something went wrong: " + responseBody)
+                                popupMessage("Error","Something went wrong: " + responseBody)
                         );
                     } else {
                         Platform.runLater(() -> {
                             filePath.setText("File Path : " + file);
-                            showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,customerController.LenderLoansTableListView,"");
-                            showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,customerController.loanerLoansListView,"");
-                            showMovementsInformationServlet("");//ToDo this is supposed to be in the pull methode
                         });
                     }
                     response.close();
@@ -138,6 +135,7 @@ public class ABSController extends HelperFunction implements Initializable {
 
     public void afterLoginClickCustomer(String name) {
         customerController = myFXMLLoader("MyCustomerView.fxml");
+        customerController.setAbsControllerRef(this);
         myBorderPane.setCenter(customerController.customerTablePane);
         final ObservableList<String> categories = FXCollections.observableArrayList();
         customerController.categoriesList.getItems().clear();
@@ -149,51 +147,8 @@ public class ABSController extends HelperFunction implements Initializable {
         filePath.setVisible(true);
         loadFileButton.setVisible(true);
 
-        /*showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,customerController.LenderLoansTableListView,name);
-        showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,customerController.loanerLoansListView,name);
-        showMovementsInformationServlet(name);*/
     }
 
-    private void showMovementsInformationServlet(String customerName){
-        String finalUrl = HttpUrl
-                .parse(MOVEMENTS_PAGE_CUSTOMER)
-                .newBuilder()
-                .addQueryParameter("username", customerName)
-                .build()
-                .toString();
-
-        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
-
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() ->
-                        filePath.setText("Something went wrong: " + e.getMessage())
-                );
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.code() != 200) {
-                    String responseBody = response.body().string();
-                    Platform.runLater(() ->
-                            filePath.setText("Something went wrong: " + responseBody)
-                    );
-                } else {
-                    Platform.runLater(() -> {
-                        String rawBody = null;
-                        try {
-                            rawBody = response.body().string();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        DTOMovementsList dtoMovementsList=GSON_INSTANCE.fromJson(rawBody, DTOMovementsList.class);
-                        customerController.customerMovments.setItems(FXCollections.observableArrayList(dtoMovementsList.getDtoMovements()));
-                    });
-                }
-            }
-        });
-
-    }
 
     private String fileChooserImplementation(javafx.event.ActionEvent e){
         Node node = (Node) e.getSource();
@@ -204,7 +159,7 @@ public class ABSController extends HelperFunction implements Initializable {
     }
 
 
-    private void showLoanInformationInAdminAndCustomerViewServlet(String url,ListView<DTOLoan> loanListView,String customerName){
+    public void showLoanInformationInAdminAndCustomerViewServlet(String url,ListView<DTOLoan> loanListView,String customerName){
         String finalUrl = HttpUrl
                 .parse(url)
                 .newBuilder()
@@ -237,7 +192,7 @@ public class ABSController extends HelperFunction implements Initializable {
                             e.printStackTrace();
                         }
                         DTOLoansList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOLoansList.class);
-                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),false);
+                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans());
                     });
                 }
             }
@@ -304,18 +259,6 @@ public class ABSController extends HelperFunction implements Initializable {
 
     }
 
-   public MenuItem getSkinMenuButton(){
-        return skinMenuButton;
-   }
-
-   public MenuItem getDefaultSkinMenuButton(){
-        return defaultSkinMenuButton;
-   }
-
-   public MenuButton getSkinsMenuButton(){
-        return skinsMenuButton;
-   }
-
     private void setTheAdminAndCustomersAsMenuItems() {
 
         if( viewBy.getItems().size()>1)
@@ -361,13 +304,6 @@ public class ABSController extends HelperFunction implements Initializable {
 
     }
 
-    private String fileChooserImplementation(javafx.event.ActionEvent e){
-        Node node = (Node) e.getSource();
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML","*.xml"));
-        fileChooser.setTitle("Load File");
-        return fileChooser.showOpenDialog(node.getScene().getWindow()).getPath();
-    }
 
     protected void  addTheLoansThatShouldPayToAllTheLoansPayListView(List<DTOLoan> loansThatShouldPay){
         for (CustomerController customerController: customersController) {

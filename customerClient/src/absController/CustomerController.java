@@ -1,5 +1,6 @@
 package absController;
 
+import dataObjects.dtoBank.DTOBank;
 import dataObjects.dtoBank.dtoAccount.DTOInlay;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
 import dataObjects.dtoBank.dtoAccount.DTOLoansList;
@@ -29,6 +30,7 @@ import okhttp3.Response;
 import org.controlsfx.control.CheckComboBox;
 import org.controlsfx.dialog.ProgressDialog;
 import org.jetbrains.annotations.NotNull;
+import util.Constants;
 import util.http.HttpClientUtil;
 
 import java.io.IOException;
@@ -45,6 +47,8 @@ public class CustomerController extends HelperFunction implements Initializable 
     protected ListView<DTOLoan> chosenInlayListView;
     protected ABSController absControllerRef;
     private Task<Boolean> workerScrambleTask;
+    private Timer timer;
+    private TimerTask listRefresher;
 
 
     @FXML
@@ -144,6 +148,26 @@ public class CustomerController extends HelperFunction implements Initializable 
 
     List<DTOLoan> loansThatShouldPay;
 
+    private void updateCustomer(DTOCustomer dtoCustomer){
+        Platform.runLater(()->{
+            try{
+                this.dtoCustomer=dtoCustomer;
+                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,loanerLoansListView,dtoCustomer.getName());
+                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,LenderLoansTableListView,dtoCustomer.getName());
+                customerMovments.setItems(FXCollections.observableArrayList(dtoCustomer.getMovements()));
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void setListRefresher(){
+        listRefresher=new CustomerRefresher(this::updateCustomer);
+        timer= new Timer();
+        timer.schedule(listRefresher,REFRESH_RATE,REFRESH_RATE);
+    }
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -152,6 +176,7 @@ public class CustomerController extends HelperFunction implements Initializable 
         actionColumn.setCellValueFactory(new PropertyValueFactory<>("operation"));
         sumBeforeColumn.setCellValueFactory(new PropertyValueFactory<>("sumBeforeOperation"));
         sumAfterColumn.setCellValueFactory(new PropertyValueFactory<>("sumAfterOperation"));
+        setListRefresher();
 
         loansListController = myFXMLLoader("LoansListViewer.fxml");
 
@@ -160,7 +185,6 @@ public class CustomerController extends HelperFunction implements Initializable 
         allInlayListView = new ListView<>();
 
         scrambleTab.setOnSelectionChanged(e -> errorTextArea.setVisible(false));
-        getCustomerFromServlet();
         chargeButton.setOnAction(c -> chargeOrWithdrawAction(1));
         withdrawButton.setOnAction(w -> chargeOrWithdrawAction(2));
 
@@ -235,44 +259,6 @@ public class CustomerController extends HelperFunction implements Initializable 
         });
     }
 
-    private void getCustomerFromServlet() {
-        String finalUrl = HttpUrl
-                .parse(GET_CUSTOMER_PAGE_CUSTOMER)
-                .newBuilder()
-                .build()
-                .toString();
-
-        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
-
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() ->
-                        popupMessage("There is not Customer by this name", "Something went wrong: " + e.getMessage())
-                );
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.code() != 200) {
-                    String responseBody = response.body().string();
-                    Platform.runLater(() ->
-                            popupMessage("Error", "Something went wrong: " + responseBody)
-                    );
-                } else {
-                    Platform.runLater(() -> {
-                        String rawBody = null;
-                        try {
-                            rawBody = response.body().string();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        dtoCustomer = GSON_INSTANCE.fromJson(rawBody, DTOCustomer.class);
-                    });
-                }
-            }
-        });
-    }
-
 
     @FXML
     private int MaximumLoanOwnershipPercentageActionLisener() {
@@ -337,9 +323,9 @@ public class CustomerController extends HelperFunction implements Initializable 
         String amount = investmentAmount.getText();
         int amountFromUser;
         amountFromUser = Integer.parseInt(amount);
-       /* if (amountFromUser <= 0 || amountFromUser > (bank.getCustomerByName(dtoCustomer.getCustomerName())).getAmount())
-            throw new NumberFormatException("In 'Amount to investment' - Invalid input!! Please enter a number greater than 0 and less than " + (bank.getCustomerByName(dtoCustomer.getCustomerName())).getAmount());
-*/
+        if (amountFromUser <= 0 || amountFromUser > dtoCustomer.getAmount())
+            throw new NumberFormatException("In 'Amount to investment' - Invalid input!! Please enter a number greater than 0 and less than " + dtoCustomer.getAmount());
+
         return amountFromUser;
     }
 
@@ -362,8 +348,6 @@ public class CustomerController extends HelperFunction implements Initializable 
             String message = e.getMessage();
             errorTextArea.setVisible(true);
             errorTextArea.setText("ERROR: " + message);
-            //ShakeTransition anim = new ShakeTransition(dialog.getDialogPane(), t->dialog.close());
-            //anim.playFromStart();
         }
     }
 
@@ -374,7 +358,7 @@ public class CustomerController extends HelperFunction implements Initializable 
             mySetVisible(true);
             allInlayLoansBorderPane.setCenter(allInlayListView);
             chosenInlayLoansBorderPane.setCenter(chosenInlayListView);
-            showLoanInformationInAdminAndCustomerView(allInlayListView, loans, false);
+            showLoanInformationInAdminAndCustomerView(allInlayListView, loans);
             popupMessage("Success!!!", "Please click on the loan you want and then click on the 'Add loan' button.");
 
             chooseLoanButton.setOnAction(e -> {
@@ -445,7 +429,6 @@ public class CustomerController extends HelperFunction implements Initializable 
                         }
                         DTOLoansList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOLoansList.class);
                         selectPotentialLoans(dtoLoansList.getDTOLoans());
-                       // showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),false);
                     });
                 }
             }
@@ -524,11 +507,6 @@ public class CustomerController extends HelperFunction implements Initializable 
             Thread.sleep(3000);
         } catch (InterruptedException ignored) {
         }
-    }
-
-
-    protected void setCurrentCustomer(DTOCustomer dtoCustomer) {
-        this.dtoCustomer = dtoCustomer;
     }
 
     protected void setAbsControllerRef(ABSController absController) {

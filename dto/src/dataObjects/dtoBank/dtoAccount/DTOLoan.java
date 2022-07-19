@@ -21,7 +21,7 @@ public class DTOLoan {
     protected int paysEveryYaz;
     protected int interestPerPayment;
     protected DTOLoanStatus loanStatus = DTOLoanStatus.NEW;
-    protected List<DTOAccount> listOfAccompanied;
+    protected List<DTOCustomer> listOfAccompanied;
     protected List<DTOInlay> listOfInlays;
     protected List<DTOMovement> listOfMovements;
     protected List<Integer> listOfYazPayments;
@@ -68,7 +68,7 @@ public class DTOLoan {
         dtoLoan.inRiskCounter=loan.inRiskCounter;
         dtoLoan.debt=loan.debt;
         dtoLoan.capitalSumLeftTillActive=loan.capitalSumLeftTillActive;
-        List<DTOAccount> accompaniedList = new ArrayList<>();
+        List<DTOCustomer> accompaniedList = new ArrayList<>();
         List<DTOInlay> inlaysList = new ArrayList<>();
         List<DTOMovement> movementsList=new ArrayList<>();
         List<Integer> listOfYazPayments=new ArrayList<>();
@@ -77,8 +77,8 @@ public class DTOLoan {
         for (DTOPaymentsInfo dtoPaymentsInfo : loan.paymentsInfoList) {
             paymentsInfoList.add(DTOPaymentsInfo.build(dtoPaymentsInfo));
         }
-        for (DTOAccount dtoAccount : loan.listOfAccompanied) {
-            accompaniedList.add(DTOCustomer.build((DTOCustomer) dtoAccount));
+        for (DTOCustomer dtoAccount : loan.listOfAccompanied) {
+            accompaniedList.add(DTOCustomer.build(dtoAccount));
         }
         for (DTOInlay dtoInlay : loan.listOfInlays) {
             inlaysList.add(DTOInlay.build(dtoInlay));
@@ -141,7 +141,7 @@ public class DTOLoan {
         return capital;
     }
 
-    public List<DTOAccount> getListOfAccompanied() {
+    public List<DTOCustomer> getListOfAccompanied() {
         return listOfAccompanied;
     }
 
@@ -334,4 +334,5 @@ public class DTOLoan {
         }
         return sum;
     }
+
 }
