@@ -3,6 +3,7 @@ package logic.bank.account;
 import dataObjects.dtoBank.dtoAccount.DTOLoan;
 import dataObjects.dtoBank.dtoAccount.DTOPaymentsPerYaz;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PaymentsPerYaz extends DTOPaymentsPerYaz {
@@ -18,7 +19,7 @@ public class PaymentsPerYaz extends DTOPaymentsPerYaz {
         return this;
     }
 
-    public PaymentsPerYaz setLoanList(List<Loan> loans){
+    public PaymentsPerYaz setLoanList(ArrayList<DTOLoan> loans){
         this.dtoLoanList.addAll(loans);
         return this;
     }

@@ -42,7 +42,7 @@ public class DTOLoan {
     protected Boolean isPaid=false;
 
     public DTOLoan() {
-
+        massagesProperty.setValue("");
 
     }
 
@@ -292,7 +292,9 @@ public class DTOLoan {
     }
 
     public void setTotalCapitalPayTillEnd(int totalCapitalPayTillNow) {
-        totalCapitalPayTillEnd= getCapital()+getCapital()*getInterestPerPayment()/100-totalCapitalPayTillNow;
+        //totalCapitalPayTillEnd= getCapital()+getCapital()*getInterestPerPayment()/100-totalCapitalPayTillNow;
+        totalCapitalPayTillEnd= getCapital()-totalCapitalPayTillNow;
+
     }
 
     public void addTotalInterestPayTillNow(int sum) {

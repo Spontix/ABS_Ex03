@@ -39,13 +39,15 @@ public class PaymentServlet extends HttpServlet {
             else
                 customerAmount = new BufferedReader(new InputStreamReader(part.getInputStream())).readLine();
         }
-        try {
-            bankManager.operateThePaymentOfTheLoanDesktop(bankManager.getLoanById(partValue), Integer.parseInt(customerAmount));
-            out.println("The payment paid!");
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NumberFormatException exception) {
-            out.println("Incorrect input,please note that you entered an integer number!!\n");
+        synchronized (this) {
+            try {
+                bankManager.operateThePaymentOfTheLoanDesktop(bankManager.getLoanById(partValue), Integer.parseInt(customerAmount));
+                out.println("The payment paid!");
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NumberFormatException exception) {
+                out.println("Incorrect input,please note that you entered an integer number!!\n");
+            }
         }
     }
 }

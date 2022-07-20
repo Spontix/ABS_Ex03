@@ -14,9 +14,9 @@ import java.util.List;
 
 public class HelperFunction {
 
-    static protected void showLoanInformationInAdminAndCustomerView(ListView<DTOLoan> listView, List<DTOLoan> loanList) {
+    static protected void showLoanInformationInAdminAndCustomerView(ListView<DTOLoan> listView, List<DTOLoan> loanList,boolean loansToPayListView) {
         int index;
-        int customersListViewSize=listView.getItems().size();
+        int customersListViewSize = listView.getItems().size();
         //if(loanList.size()!=0) {
         for (index = 0; index < customersListViewSize; index++) {
             DTOLoan dtoLoanToDelete = listView.getItems().get(index);
@@ -27,8 +27,15 @@ public class HelperFunction {
             listView.getItems().add(loanList.get(index));
             index++;
         }
-        // }
+        while (index > loanList.size()) {
+            listView.getItems().remove(index);
+            index++;
+        }
+
     }
+        // }
+
+
 
     static protected void showCustomerInformationAdminView(ListView<DTOCustomer> listView,  List<DTOCustomer> list){
         int index;

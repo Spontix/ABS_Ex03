@@ -31,9 +31,10 @@ public class Constants {
     public final static String WITHDRAWAL_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/withdraw";
     public final static String POTENTIAL_LOANS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/scramble/potentialLoans";
     public final static String SELECTED_LOANS_LOAN_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/scramble/selectedLoans";
-
-
-
+    public final static String YAZ_UNIT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/yazUnitProgress";
+    public final static String LOANS_TO_PAY_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loans-to-pay";
+    public final static String PAYMENT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loanPayment";
+    public final static String MOVEMENTS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/movements";
 
     public final static String LOGIN_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/login";
     public final static String LOANS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/loansInformation";
@@ -42,8 +43,6 @@ public class Constants {
     public final static String BANK_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/bankInformation";
 
 
-    public final static String PAYMENT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loanPayment";
-    public final static String MOVEMENTS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/movements";
 
 
     public final static String UPLOAD_FILE_PAGE = FULL_SERVER_PATH_CUSTOMER + "/upload-file";

@@ -21,6 +21,7 @@ import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import util.Constants;
@@ -36,8 +37,7 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
-import static util.Constants.GSON_INSTANCE;
-import static util.Constants.MOVEMENTS_PAGE_CUSTOMER;
+import static util.Constants.*;
 
 public class ABSController extends HelperFunction implements Initializable {
 
@@ -96,40 +96,43 @@ public class ABSController extends HelperFunction implements Initializable {
     private void onLoadFileButton(){
         loadFileButton.setOnAction(e -> {
             String file = fileChooserImplementation(e);
-            String finalUrl = HttpUrl
-                    .parse(Constants.UPLOAD_FILE_PAGE)
-                    .newBuilder()
-                    .build()
-                    .toString();
-            RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("file1",file,
-                            RequestBody.create(MediaType.parse("application/octet-stream"),
-                                    new File(file)))
-                    .build();
-            HttpClientUtil.runAsyncPost(finalUrl, new Callback() {
+            if(file==null)
+                return;
+                String finalUrl = HttpUrl
+                        .parse(Constants.UPLOAD_FILE_PAGE)
+                        .newBuilder()
+                        .build()
+                        .toString();
+                RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                        .addFormDataPart("file1", file,
+                                RequestBody.create(MediaType.parse("application/octet-stream"),
+                                        new File(file)))
+                        .build();
 
-                @Override
-                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    Platform.runLater(() ->
-                            popupMessage("Error","Something went wrong: " + e.getMessage())
-                    );
-                }
+                HttpClientUtil.runAsyncPost(finalUrl, new Callback() {
 
-                @Override
-                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                    if (response.code() != 200) {
-                        String responseBody = response.body().string();
+                    @Override
+                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
                         Platform.runLater(() ->
-                                popupMessage("Error","Something went wrong: " + responseBody)
+                                popupMessage("Error", "Something went wrong: " + e.getMessage())
                         );
-                    } else {
-                        Platform.runLater(() -> {
-                            filePath.setText("File Path : " + file);
-                        });
                     }
-                    response.close();
-                }
-            },body);
+
+                    @Override
+                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                        if (response.code() != 200) {
+                            String responseBody = response.body().string();
+                            Platform.runLater(() ->
+                                    popupMessage("Error", "Something went wrong: " + responseBody)
+                            );
+                        } else {
+                            Platform.runLater(() -> {
+                                filePath.setText("File Path : " + file);
+                            });
+                        }
+                        response.close();
+                    }
+                }, body);
         });
     }
 
@@ -155,11 +158,12 @@ public class ABSController extends HelperFunction implements Initializable {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("XML","*.xml"));
         fileChooser.setTitle("Load File");
-        return fileChooser.showOpenDialog(node.getScene().getWindow()).getPath();
+        File file=fileChooser.showOpenDialog(node.getScene().getWindow());
+        return file!=null?file.getPath():null;
     }
 
 
-    public void showLoanInformationInAdminAndCustomerViewServlet(String url,ListView<DTOLoan> loanListView,String customerName){
+    public void showLoanInformationInAdminAndCustomerViewServlet(String url,ListView<DTOLoan> loanListView,String customerName,boolean loansToPayListView){
         String finalUrl = HttpUrl
                 .parse(url)
                 .newBuilder()
@@ -172,7 +176,7 @@ public class ABSController extends HelperFunction implements Initializable {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 Platform.runLater(() ->
-                        filePath.setText("Something went wrong: " + e.getMessage())
+                        popupMessage("Error","Something went wrong: " + e.getMessage())
                 );
             }
 
@@ -181,7 +185,7 @@ public class ABSController extends HelperFunction implements Initializable {
                 if (response.code() != 200) {
                     String responseBody = response.body().string();
                     Platform.runLater(() ->
-                            filePath.setText("Something went wrong: " + responseBody)
+                            popupMessage("Error","Something went wrong: " + responseBody)
                     );
                 } else {
                     Platform.runLater(() -> {
@@ -192,7 +196,15 @@ public class ABSController extends HelperFunction implements Initializable {
                             e.printStackTrace();
                         }
                         DTOLoansList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOLoansList.class);
-                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans());
+                        showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),loansToPayListView);
+                        if(url.equals(LOANS_TO_PAY_PAGE_CUSTOMER)) {
+                            for (DTOLoan dtoLoan : dtoLoansList.getDTOLoans()) {
+                                if (dtoLoan.getMassagesProperty().get().equals("")) {
+                                } else if (customerController.notificationAreaListView.getItems().contains(dtoLoan.getMassagesProperty().get())) {
+                                } else
+                                    customerController.notificationAreaListView.getItems().add(dtoLoan.getMassagesProperty().get());
+                            }
+                        }
                     });
                 }
             }

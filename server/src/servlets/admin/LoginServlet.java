@@ -27,6 +27,7 @@ public class LoginServlet extends HttpServlet {
         if (adminFromSession == null) {
             String usernameFromParameter = request.getParameter(USERNAME);
             if (usernameFromParameter == null || usernameFromParameter.isEmpty() || (!usernameFromParameter.equals("Admin") && !usernameFromParameter.equals("admin"))) {
+                out.println("Incorrect username,you are not the admin/Admin");
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
             } else {
                 usernameFromParameter = usernameFromParameter.trim();
@@ -36,7 +37,7 @@ public class LoginServlet extends HttpServlet {
 
                         // stands for unauthorized as there is already such user with this name
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.getOutputStream().print(errorMessage);
+                        out.println(errorMessage);
                     } else {
                         out.println("Welcome " + "Admin"+" to the bank app!");
                         response.setStatus(HttpServletResponse.SC_OK);
@@ -46,7 +47,7 @@ public class LoginServlet extends HttpServlet {
         } else {
             //user is already logged in
             out.println("The Admin name is already in use!");
-            response.setStatus(HttpServletResponse.SC_OK);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
 

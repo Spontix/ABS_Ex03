@@ -43,7 +43,6 @@ public class LoadFileServlet extends HttpServlet {
                     UIInterfaceLogic bankManager = ServletUtils.getBank(getServletContext());
                     for (Part part : parts) {
                         XmlSerialization.addToBank(part.getContentType(), part.getInputStream(), (Bank) bankManager, customerFromSession);
-                        out.println("The file was uploaded successfully\n");
                     }
                 } catch (FileNotFoundException fileNotFoundException) {
                     out.println("The system could not find the file, please check the file path again");
@@ -55,6 +54,7 @@ public class LoadFileServlet extends HttpServlet {
                         out.println(ex.getMessage());
                     }
                 }
+                out.println("The file was uploaded successfully\n");
             }
         } else {
             //user is not log-in

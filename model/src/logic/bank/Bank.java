@@ -197,11 +197,15 @@ public class Bank implements UIInterfaceLogic {
 
     @Override
     public DTOPaymentsPerYaz getPaymentsPerYaz(int desirableYaz){
-        DTOPaymentsPerYaz dtoPaymentsPerYaz=null;
-        for (PaymentsPerYaz originalPaymentsPerYaz : this.paymentsPerYazList) {
+        DTOPaymentsPerYaz dtoPaymentsPerYaz=new DTOPaymentsPerYaz();
+        for (DTOLoan dtoLoan : this.getLoansList()) {
+            if (dtoLoan.getLoanStatus() != DTOLoanStatus.NEW && dtoLoan.getLoanStatus() != DTOLoanStatus.FINISHED && dtoLoan.getLoanStatus() != DTOLoanStatus.PENDING)
+                dtoPaymentsPerYaz.getDTOLoansList().add(dtoLoan);
+        }
+        /*for (PaymentsPerYaz originalPaymentsPerYaz : this.paymentsPerYazList) {
             if(originalPaymentsPerYaz.getCurrentYaz()==desirableYaz)
                 dtoPaymentsPerYaz=DTOPaymentsPerYaz.build(originalPaymentsPerYaz);
-        }
+        }*/
         return dtoPaymentsPerYaz;
     }
 
@@ -664,7 +668,7 @@ public class Bank implements UIInterfaceLogic {
                 logicLoan.incrPulseCounterThatHappenedByOne();
             }
             buildPaymentInfoList(logicLoan, customerPayment, "Yes", YazLogicDesktop.currentYazUnitProperty.getValue());
-            logicLoan.addTotalCapitalPayTillNow(customerPayment);
+            logicLoan.addTotalCapitalPayTillNow(customerPayment-customerPayment * logicLoan.getInterestPerPayment() / (100 + logicLoan.getInterestPerPayment()));
             logicLoan.addTotalInterestPayTillNow(customerPayment * logicLoan.getInterestPerPayment() / (100 + logicLoan.getInterestPerPayment()));
             for (DTOInlay dtoInlay : logicLoan.getListOfInlays()) {
                 movementBuildToCustomer((Customer)  this.getRealCustomerByName(dtoInlay.getName()), logicLoan.calculatePaymentToLoaner((Customer)  this.getRealCustomerByName(dtoInlay.getName()), customerPayment), "+",  this.getRealCustomerByName(dtoInlay.getName()).getAmount(),  this.getRealCustomerByName(dtoInlay.getName()).getAmount() + logicLoan.calculatePaymentToLoaner((Customer)  this.getRealCustomerByName(dtoInlay.getName()), customerPayment));
@@ -733,7 +737,7 @@ public class Bank implements UIInterfaceLogic {
     }
 
 
-    @Override//ToDo : need to check...Does it works?
+     @Override//ToDo : need to check...Does it works?
     public ArrayList<DTOLoan> yazProgressLogicDesktop() throws InvocationTargetException, InstantiationException, IllegalAccessException {
         /////////////2.Payment should be paid by the loaner+sorted the list because of the logic of the app
         List<Loan> loansThatShouldPay = loans.stream().filter(l -> ( l.numberOfYazTillNextPulseDK(YazLogicDesktop.currentYazUnitProperty.intValue()) == 0 && l.getLoanStatus() == DTOLoanStatus.ACTIVE ) || l.getLoanStatus() == DTOLoanStatus.ACTIVE || l.getLoanStatus() == DTOLoanStatus.RISK).sorted(new Comparator<Loan>() {
@@ -752,7 +756,7 @@ public class Bank implements UIInterfaceLogic {
                 if (loan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK(YazLogicDesktop.currentYazUnitProperty.intValue()) != 0 || (loan.getPaysEveryYaz() == 1)) {
                     loan.setLoanStatus(DTOLoanStatus.RISK);
                     if ((loan.getPaysEveryYaz() == 1)) {
-                        if(loan.getPulseCounterThatHappened() < loan.getWindowOfPaymentCounter() - 2)
+                        if (loan.getPulseCounterThatHappened() < loan.getWindowOfPaymentCounter() - 2)
                             loan.setLoanStatus(DTOLoanStatus.RISK);
                         else
                             loan.setLoanStatus(DTOLoanStatus.ACTIVE);
@@ -780,15 +784,7 @@ public class Bank implements UIInterfaceLogic {
                 loan.setStringPropertyValue("Name : " + loan.getId() + "\n" + "Payment Yaz: " + YazLogicDesktop.currentYazUnitProperty.getValue() + "\n" + "Amount of required payment : " + loan.paymentPerPulse() +
                         "\n" + "Status : " + loan.getLoanStatus());
             }
-        }//
-        DTOPaymentsPerYaz dtoPaymentsPerYaz=this.getPaymentsPerYaz(YazLogicDesktop.currentYazUnitProperty.getValue());
-        if(dtoPaymentsPerYaz==null){
-            PaymentsPerYaz paymentsPerYaz=PaymentsPerYaz.build().setCurrentYaz(YazLogicDesktop.currentYazUnitProperty.getValue()).setLoanList(loansThatShouldPay);
-            this.paymentsPerYazList.add(paymentsPerYaz);
         }
-        else
-            this.paymentsPerYazList.stream().filter(p->p.getCurrentYaz()==dtoPaymentsPerYaz.getCurrentYaz()).collect(Collectors.toList()).get(0).setLoanList(loansThatShouldPay);
-
         ArrayList<DTOLoan> DTOLoansThatShouldPay = new ArrayList<>();
         loansThatShouldPay.forEach(l -> DTOLoansThatShouldPay.add(DTOLoan.build(l)));
 

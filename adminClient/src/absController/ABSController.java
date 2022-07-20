@@ -188,8 +188,6 @@ public class ABSController extends HelperFunction implements Initializable {
         loginBorderPane.setVisible(false);
         viewBy.setVisible(true);
         currentYaz.setVisible(true);
-        /*showLoanInformationInAdminAndCustomerViewServlet(Constants.LOANS_PAGE_ADMIN,loansListController.LoansListView,null);
-        showCustomerInformationAdminViewServlet();*/
         setListRefresher();
 
     }

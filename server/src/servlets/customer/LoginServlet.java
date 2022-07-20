@@ -29,6 +29,7 @@ public class LoginServlet extends HttpServlet {
         if (customerFromSession == null) {
             String usernameFromParameter = request.getParameter(USERNAME);
             if (usernameFromParameter == null || usernameFromParameter.isEmpty()) {
+                out.println("Please enter a username...");
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
             } else {
                 usernameFromParameter = usernameFromParameter.trim();
@@ -39,7 +40,7 @@ public class LoginServlet extends HttpServlet {
 
                         // stands for unauthorized as there is already such user with this name
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                        response.getOutputStream().print(errorMessage);
+                        out.println(errorMessage);
                     } else {
                         DTOCustomer dtoCustomer = DTOCustomer.builderServer(finalUsernameFromParameter);
 
@@ -63,7 +64,7 @@ public class LoginServlet extends HttpServlet {
         } else {
             //user is already logged in
             out.println("The user name is already in use!");
-            response.setStatus(HttpServletResponse.SC_OK);
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
         }
     }
 }
