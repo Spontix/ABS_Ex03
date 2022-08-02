@@ -8,6 +8,7 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import logic.UIInterfaceLogic;
 import logic.bank.Bank;
+import logic.bank.bankLogicYazHistory.BankLogicBankHistoryList;
 
 import java.util.ArrayList;
 
@@ -17,6 +18,9 @@ import static constants.Constants.INT_PARAMETER_ERROR;
 public class ServletUtils {
 
 	private static final String BANK_ATTRIBUTE_NAME = "bank";
+	private static final String BANK_LOGIC_HISTORY_LIST_ATTRIBUTE_NAME = "bankHistory";
+
+
 	private static final String ADMIN_ATTRIBUTE_NAME = "admin";
 
 	private static final String CUSTOMERS_ATTRIBUTE_NAME = "customersList";
@@ -38,6 +42,17 @@ public class ServletUtils {
 			}
 		}
 		return (UIInterfaceLogic) servletContext.getAttribute(BANK_ATTRIBUTE_NAME);
+	}
+
+
+
+	public static BankLogicBankHistoryList getBankLogicYazHistoryList(ServletContext servletContext) {
+		synchronized (bankManagerLock) {
+			if (servletContext.getAttribute(BANK_LOGIC_HISTORY_LIST_ATTRIBUTE_NAME) == null) {
+				servletContext.setAttribute(BANK_LOGIC_HISTORY_LIST_ATTRIBUTE_NAME, new BankLogicBankHistoryList());
+			}
+		}
+		return (BankLogicBankHistoryList) servletContext.getAttribute(BANK_LOGIC_HISTORY_LIST_ATTRIBUTE_NAME);
 	}
 
 	public static ArrayList<DTOCustomer> getCustomers(ServletContext servletContext) {

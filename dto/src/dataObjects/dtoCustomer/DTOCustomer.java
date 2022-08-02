@@ -14,7 +14,7 @@ public class DTOCustomer {
     protected List<DTOInlay> inlays;
     protected List<DTOLoan> loaner;
     protected List<DTOLoan> borrower;
-
+    protected boolean rewind;
 
     public DTOCustomer(){
         inlays = new ArrayList<>();
@@ -29,6 +29,9 @@ public class DTOCustomer {
         return dtoCustomer;
     }
 
+    public boolean getRewind(){
+        return rewind;
+    }
 
     public int getAmount() {
         return amount;
@@ -91,5 +94,9 @@ public class DTOCustomer {
 
     public void addAmount(int amount){
         this.amount+=amount;
+    }
+
+    public void setRewind(boolean rewind){
+        this.rewind=rewind;
     }
 }

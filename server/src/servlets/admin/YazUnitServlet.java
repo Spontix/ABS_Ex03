@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import logic.UIInterfaceLogic;
 import logic.YazLogicDesktop;
+import logic.bank.bankLogicYazHistory.BankLogicBankHistoryList;
 import utils.ServletUtils;
 
 import java.io.IOException;
@@ -22,11 +23,11 @@ public class YazUnitServlet extends HttpServlet {
         response.setContentType("text/plain;charset=UTF-8");
         PrintWriter out = response.getWriter();
         UIInterfaceLogic bankManager = ServletUtils.getBank(getServletContext());
-
+        BankLogicBankHistoryList bankLogicBankHistoryList=ServletUtils.getBankLogicYazHistoryList(getServletContext());
         synchronized (this) {
             YazLogicDesktop.currentYazUnitProperty.set(YazLogicDesktop.currentYazUnitProperty.get() + 1);
             try {
-                bankManager.yazProgressLogicDesktop();
+                bankManager.yazProgressLogicDesktop(bankLogicBankHistoryList);
             } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }

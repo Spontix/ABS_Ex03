@@ -8,6 +8,7 @@ import dataObjects.dtoBank.dtoAccount.DTOLoansList;
 import dataObjects.dtoCustomer.DTOCustomer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -25,8 +26,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
-import static util.Constants.GSON_INSTANCE;
-import static util.Constants.REFRESH_RATE;
+import static util.Constants.*;
 
 public class ABSController extends HelperFunction implements Initializable {
 
@@ -69,19 +69,68 @@ public class ABSController extends HelperFunction implements Initializable {
     @FXML
     protected Button loadFileButton;
 
+    @FXML
+    protected ToggleButton rewindToggleButton;
+
+    @FXML
+    protected TextArea rewindText;
+
+    int currentYazAsNumber;
+
 
     @FXML
     void contextMenuRequested(ContextMenuEvent event) {
     }
+
 
     private void updateCustomersList(DTOBank dtoBank){
         Platform.runLater(()->{
             try{
                 showCustomerInformationAdminView(customersListController.customersListView,dtoBank.getAccounts());
                 showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,dtoBank.getLoans());
+                getYazUnitServlet();
             }
             catch (Exception e){
                 e.printStackTrace();
+            }
+        });
+    }
+
+    private void getYazUnitServlet(){
+        String finalUrl = HttpUrl
+                .parse(YAZ_UNIT_PAGE_CUSTOMER)
+                .newBuilder()
+                .build()
+                .toString();
+
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        popupMessage("Error", "Something went wrong: " + e.getMessage())
+                );
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                            popupMessage("Error", "Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        String rawBody = null;
+                        try {
+                            rawBody = response.body().string().trim();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        currentYaz.setText("Current Yaz : "+ rawBody);
+                        currentYazAsNumber=Integer.parseInt(rawBody);
+                    });
+                }
             }
         });
     }
@@ -100,12 +149,71 @@ public class ABSController extends HelperFunction implements Initializable {
         adminController = myFXMLLoader("MyAdminView.fxml");
         customersListController=myFXMLLoader("CustomerListViewer.fxml");
 
+        onRewindToggleButtonClick();
         adminController.increaseYazButton.setOnAction(e-> YazLogicDesktopIncreaseServlet());
         loginController.setAbsController(this);
         onLoadFileClick();
         onLoanClickProperty(loansListController,null);
         onCustomerClickProperty();
     }
+
+    private void onRewindToggleButtonClick(){
+        /*rewindToggleButton.setOnKeyPressed(e->onRewindToggleButtonClickServlet(REWIND_ON_PAGE_ADMIN));
+        rewindToggleButton.setOnKeyReleased(e->onRewindToggleButtonClickServlet(REWIND_OFF_PAGE_ADMIN));*/
+        rewindToggleButton.setOnAction(e->onRewindToggleButtonClickServlet());
+    }
+
+    private void onRewindToggleButtonClickServlet() {
+        //noinspection ConstantConditions
+        String url=null;
+        int yazChosen=Integer.parseInt(rewindText.getText());
+        if(yazChosen>=currentYazAsNumber){
+            popupMessage("Be aware!","You can insert only yaz below the current yaz od the app");
+        }
+
+        if(rewindToggleButton.isSelected()){
+            url=REWIND_ON_PAGE_ADMIN;
+        }
+        else
+            url=REWIND_OFF_PAGE_ADMIN;
+
+        String finalUrl = HttpUrl
+                .parse(url)
+                .newBuilder()
+                .addQueryParameter("yaz", rewindText.getText())
+                .build()
+                .toString();
+
+        String finalUrl1 = url;
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        popupMessage("Error","Something went wrong: " + e.getMessage())
+                );
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                           popupMessage("Error","Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        loansListController.loansAccordionInformation.setVisible(true);
+                        customersListController.customersAccordionInformation.setVisible(true);
+                        loansListController.LoansListView.getItems().clear();
+                        customersListController.customersListView.getItems().clear();
+                        adminController.increaseYazButton.setDisable(finalUrl1.equals(REWIND_ON_PAGE_ADMIN));
+                    });
+                }
+            }
+        });
+
+    }
+
 
     private void YazLogicDesktopIncreaseServlet(){
         String finalUrl = HttpUrl
@@ -188,8 +296,9 @@ public class ABSController extends HelperFunction implements Initializable {
         loginBorderPane.setVisible(false);
         viewBy.setVisible(true);
         currentYaz.setVisible(true);
+        rewindToggleButton.setVisible(true);
+        rewindText.setVisible(true);
         setListRefresher();
-
     }
 
     private String fileChooserImplementation(javafx.event.ActionEvent e){
@@ -273,45 +382,6 @@ public class ABSController extends HelperFunction implements Initializable {
         });
     }
 
-   /* private void showCustomerInformationAdminViewServlet(){
-        String finalUrl = HttpUrl
-                .parse(Constants.CUSTOMERS_PAGE_ADMIN)
-                .newBuilder()
-                .build()
-                .toString();
-
-        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
-
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                Platform.runLater(() ->
-                        filePath.setText("Something went wrong: " + e.getMessage())
-                );
-            }
-
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.code() != 200) {
-                    String responseBody = response.body().string();
-                    Platform.runLater(() ->
-                            filePath.setText("Something went wrong: " + responseBody)
-                    );
-                } else {
-                    Platform.runLater(() -> {
-                        String rawBody = null;
-                        try {
-                            rawBody = response.body().string();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        DTOCustomersList dtoLoansList=GSON_INSTANCE.fromJson(rawBody, DTOCustomersList.class);
-                        showCustomerInformationAdminView(customersListController.customersListView,dtoLoansList.getDTOCustomers());
-                    });
-                }
-            }
-        });
-    }*/
-
     private void onCustomerClickProperty(){
         customersListController.customersListView.getSelectionModel().selectedItemProperty().addListener(e -> {
             if(! customersListController.customersListView.getItems().isEmpty()) {
@@ -324,195 +394,6 @@ public class ABSController extends HelperFunction implements Initializable {
         });
 
     }
-
-
-   /* @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        adminController =myFXMLLoader("MyAdminView.fxml");
-        loansListController=myFXMLLoader("LoansListViewer.fxml");
-        customersListController=myFXMLLoader("CustomerListViewer.fxml");
-        customersController=new ArrayList<>();
-        adminController.loadFileButton.setOnAction(e-> {
-            try {
-                String file=fileChooserImplementation(e);
-                bank=XmlSerialization.buildBank(file.trim());
-                filePath.setText("File Path : "+file);
-                YazLogicDesktop.currentYazUnitProperty.setValue(1);
-                showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,bank.getLoansList(),false);
-                showCustomerInformationAdminView( customersListController.customersListView,bank.getCustomers());
-                adminController.LoansBoardPane.setCenter(loansListController.LoansMainGridPane);
-                adminController.CustomerBoardPane.setCenter(customersListController.CustomersMainGridPane);
-
-                setTheAdminAndCustomersAsMenuItems();
-            }
-            catch (NullPointerException ex){
-                popupMessage("Error","Please be sure to choose a file...");
-            }
-            catch (Exception ex) {
-                popupMessage("Error",ex.getMessage());
-            }
-        });
-        onAdminMenuItemClick();
-        //C:\Users\Eliran\IdeaProjects\ABS\model\src\resources
-        onLoanClickProperty(loansListController,null);
-        onCustomerClickProperty();
-        adminController.increaseYazButton.setOnAction(e-> {
-            YazLogicDesktop.currentYazUnitProperty.setValue(YazLogicDesktop.currentYazUnitProperty.getValue() + 1);
-            loansListControllerHandler(loansListController);
-        });
-        YazLogicDesktop.currentYazUnitProperty.addListener(((observable, oldValue, newValue) -> {
-            if(bank!=null)
-               currentYaz.setText("Current Yaz : "+newValue);
-        }));
-
-        YazLogicDesktop.currentYazUnitProperty.addListener(((observable, oldValue, newValue) -> {
-            try {
-                List<DTOLoan> loansThatShouldPay=bank.yazProgressLogicDesktop();
-                clearAllLoansPayListView();
-                addTheLoansThatShouldPayToAllTheLoansPayListView(loansThatShouldPay);
-                showLoanInformationInAdminAndCustomerView(loansListController.LoansListView,bank.getLoansList(),false);
-                showCustomerInformationAdminView( customersListController.customersListView,bank.getCustomers());
-            } catch (Exception e) {
-                popupMessage("Error","Please be sure to choose a file...");
-            }
-        }));
-
-
-
-
-        //ToDo: Function
-
-
-    }
-
-   public MenuItem getSkinMenuButton(){
-        return skinMenuButton;
-   }
-
-   public MenuItem getDefaultSkinMenuButton(){
-        return defaultSkinMenuButton;
-   }
-
-   public MenuButton getSkinsMenuButton(){
-        return skinsMenuButton;
-   }
-
-    private void setTheAdminAndCustomersAsMenuItems() {
-
-        if( viewBy.getItems().size()>1)
-             viewBy.getItems().remove(1,viewBy.getItems().size());
-        for (DTOCustomer dtoCustomer : bank.getCustomers()) {
-            MenuItem customerAsMenuItem = new MenuItem(dtoCustomer.getCustomerName());
-            viewBy.getItems().add(customerAsMenuItem);
-            CustomerController customerController = myFXMLLoader("MyCustomerView.fxml");
-            customersController.add(customerController);
-            onLoanClickProperty(customerController.loansListController,customerController);
-            customerController.setCurrentCustomer(dtoCustomer);
-            customerController.setBankInCustomerController(bank);
-            customerController.setAbsControllerRef(this);
-            List<DTOLoan> dtoLoan = bank.getLoansList().stream().filter(l -> Objects.equals(l.getOwner(), dtoCustomer.getCustomerName())).collect(Collectors.toList());
-            if (!dtoLoan.isEmpty())
-                bank.myAddListenerToStringPropertyLoans(customerController.notificationAreaListView, dtoLoan.get(0));
-            customerAsMenuItem.setOnAction(e -> {
-                    //viewBy.setText(dtoCustomer.getCustomerName());
-                    myBorderPane.setCenter(customerController.customerTablePane);
-                    final ObservableList<String> categories = FXCollections.observableArrayList();
-                    categories.addAll(bank.getCategoriesGroup());
-                    customerController.categoriesList.getItems().clear();
-                    customerController.categoriesList.getItems().addAll(categories);
-                  
-                    showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getLoansList(),false);
-                    showLoanInformationInAdminAndCustomerView(customerController.loanerLoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()),false);
-                    showLoanInformationInAdminAndCustomerView(customerController.LenderLoansTableListView, bank.getCustomerBorrowersList(dtoCustomer.getCustomerName()),false);
-                    showLoanInformationInAdminAndCustomerView(customerController.loansListController.LoansListView, bank.getCustomerLoanersList(dtoCustomer.getCustomerName()), true);
-                    customerController.customerMovments.setItems(FXCollections.observableArrayList(dtoCustomer.getMovements()));
-                    showCustomerInformationAdminView(customersListController.customersListView, bank.getCustomers());
-                  
-                    customerController.errorTextArea.setVisible(false);
-                    customerController.allInlayListView.getItems().clear();
-                    customerController.chosenInlayListView.getItems().clear();
-                    customerController.allInlayListView.setVisible(false);
-                    customerController.chosenInlayListView.setVisible(false);
-                    customerController.chooseLoanButton.setVisible(false);
-                    customerController.unChosenLoanButton.setVisible(false);
-                    customerController.doneChosenLoanButton.setVisible(false);
-                    loansListControllerHandler(customerController.loansListController);
-            });
-        }
-
-    }
-
-
-
-    protected void  addTheLoansThatShouldPayToAllTheLoansPayListView(List<DTOLoan> loansThatShouldPay){
-        for (CustomerController customerController: customersController) {
-            for (DTOLoan dtoLoan: loansThatShouldPay) {
-                if(Objects.equals(customerController.dtoCustomer.getCustomerName(), dtoLoan.getOwner())) {
-                    customerController.loansListController.LoansListView.getItems().add(dtoLoan);
-                }
-            }
-        }
-    }
-
-    protected void clearAllLoansPayListView(){
-        for (CustomerController customerController: customersController) {
-            customerController.loansListController.LoansListView.getItems().clear();
-        }
-    }
-
-    private void onLoanClickProperty(LoansListController loansListController,CustomerController customerController){
-        loansListController.LoansListView.getSelectionModel().selectedItemProperty().addListener(e -> {
-            if(!loansListController.LoansListView.getItems().isEmpty()) {
-               DTOLoan selectedLoan= loansListControllerHandler(loansListController);
-                if(customerController!=null) {
-                    if (selectedLoan.getLoanStatus() == DTOLoanStatus.RISK || (!selectedLoan.getIsPaid() && selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK() == 0)) {
-                        customerController.payButton.setDisable(false);
-                        customerController.payButton.setOnAction(e1 -> {
-                         try {
-                            if (selectedLoan.getLoanStatus() == DTOLoanStatus.RISK) {
-                                TextInputDialog paymentDialog = new TextInputDialog();
-                                paymentDialog.setTitle("Loan In Risk");
-                                paymentDialog.setContentText("Please enter the amount of money you would like to pay:");
-                                paymentDialog.setHeaderText("Current Balance: " + bank.getCustomerByName(selectedLoan.getOwner()).getAmount() + "\nDebt Amount: " + (selectedLoan.getDebt()));
-                                paymentDialog.showAndWait();
-
-                                if (paymentDialog.getResult() != null && (Integer.parseInt(paymentDialog.getResult()) <= selectedLoan.getDebt())) {
-                                        bank.operateThePaymentOfTheLoanDesktop(selectedLoan, Integer.parseInt(paymentDialog.getResult()));
-                                } else {
-                                    throw new Exception("The payment was not preformed!");
-                                }
-                            } else if (selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK() == 0) {
-                                    bank.operateThePaymentOfTheLoanDesktop(selectedLoan, selectedLoan.paymentPerPulse());
-                            }
-                         } catch (Exception ex ) {
-                             popupMessage("Error",ex.getMessage());
-                         }
-                            showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getCustomerLoanersList(selectedLoan.getOwner()), true);
-                            loansListControllerHandler(loansListController);
-                            customerController.payButton.setDisable(true);
-                            loansListController.loansAccordionInformation.setVisible(false);
-                        });
-                    }
-                    if (selectedLoan.getLoanStatus() == DTOLoanStatus.ACTIVE) {
-                        customerController.closeLoanButton.setDisable(false);
-                        customerController.closeLoanButton.setOnAction(e2 -> {
-                            try {
-                                bank.operateThePaymentOfTheLoanDesktop(selectedLoan, selectedLoan.getTotalCapitalPayTillEnd());
-                            } catch (InvocationTargetException | InstantiationException | IllegalAccessException ex) {
-                                popupMessage("System Error!",ex.getMessage());
-                            }
-                            showLoanInformationInAdminAndCustomerView(loansListController.LoansListView, bank.getCustomerLoanersList(selectedLoan.getOwner()), true);
-                            loansListControllerHandler(loansListController);
-                            customerController.closeLoanButton.setDisable(true);
-                            loansListController.loansAccordionInformation.setVisible(false);
-
-                        });
-                    }
-                }
-            }
-        });
-    }
-*/
 
     private void clearComponents(LoansListController loansListController){
         loansListController.activeStatusTableView.getItems().clear();

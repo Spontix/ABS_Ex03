@@ -8,7 +8,7 @@ public class DTOPaymentsInfo {
     protected int capitalAndInterest;
     protected String isPaid;
 
-    static DTOPaymentsInfo build(DTOPaymentsInfo paymentsInfo){
+    public static DTOPaymentsInfo build(DTOPaymentsInfo paymentsInfo){
         DTOPaymentsInfo dtoPaymentsInfo=new DTOPaymentsInfo();
         dtoPaymentsInfo.interestAmount= paymentsInfo.interestAmount;;
         dtoPaymentsInfo.yazPayment= paymentsInfo.yazPayment;

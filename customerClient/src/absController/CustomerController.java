@@ -5,6 +5,8 @@ import dataObjects.dtoBank.dtoAccount.*;
 import dataObjects.dtoCustomer.DTOCustomer;
 import javafx.animation.*;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -43,7 +45,7 @@ public class CustomerController extends HelperFunction implements Initializable 
     private Task<Boolean> workerScrambleTask;
     private Timer timer;
     private TimerTask listRefresher;
-    private int currentYaz;
+    private IntegerProperty currentYaz=new SimpleIntegerProperty();
 
 
     @FXML
@@ -80,6 +82,15 @@ public class CustomerController extends HelperFunction implements Initializable 
 
     @FXML
     protected ListView<DTOLoan> loanerLoansListView;
+
+    @FXML
+    private ListView<DTOLoanForSale> loansForSaleListView;
+
+    @FXML
+    private Button sellLoanButton;
+
+    @FXML
+    private Button buyLoanButton;
 
     @FXML
     protected ListView<DTOLoan> LenderLoansTableListView;
@@ -143,22 +154,129 @@ public class CustomerController extends HelperFunction implements Initializable 
 
     List<DTOLoan> loansThatShouldPay;
 
+    List<String> originalStringList=new ArrayList<>();
+
+    boolean firstTime=true;
+
+    private void onSaleButton(){
+        sellLoanButton.setOnAction(e->{
+            DTOLoan dtoLoan = LenderLoansTableListView.getSelectionModel().getSelectedItem();
+            getLoansForSaleServlet(dtoLoan.getId());
+        });
+    }
+
+    private void onBuyButton(){
+        buyLoanButton.setOnAction(e->{
+            DTOLoanForSale dtoLoanForSale = loansForSaleListView.getSelectionModel().getSelectedItem();
+            loanToBuyServlet(dtoLoanForSale);
+        });
+    }
+
+    private void loanToBuyServlet(DTOLoanForSale dtoLoanForSale){
+        String finalUrl = HttpUrl
+                .parse(BUY_LOAN_PAGE_CUSTOMER)
+                .newBuilder()
+                .build()
+                .toString();
+        String json = GSON_INSTANCE.toJson(dtoLoanForSale);
+        HttpClientUtil.runAsyncJson(finalUrl, new Callback() {
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        popupMessage("Error","Something went wrong: " + e.getMessage())//ToDo
+                );
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                            popupMessage("Error","Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        String rawBody = null;
+                        try {
+                            rawBody = response.body().string();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                      popupMessage("Success",rawBody);
+                    });
+                }
+            }
+        },json);
+    }
 
     private void updateCustomer(DTOCustomer dtoCustomer){
         Platform.runLater(()->{
             try{
                 this.dtoCustomer=dtoCustomer;
-                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,loanerLoansListView,dtoCustomer.getName(),false);
-                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,LenderLoansTableListView,dtoCustomer.getName(),false);
+                mySetDisable(dtoCustomer.getRewind());
+                if(dtoCustomer.getRewind())
+                    payButton.setDisable(true);
+
+                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_LOANER_PAGE_CUSTOMER,loanerLoansListView,dtoCustomer.getName(), dtoCustomer.getRewind());
+                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(Constants.AS_BORROWER_PAGE_CUSTOMER,LenderLoansTableListView,dtoCustomer.getName(),dtoCustomer.getRewind());
                 customerMovments.setItems(FXCollections.observableArrayList(dtoCustomer.getMovements()));
                 getYazUnitServlet();
-                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(LOANS_TO_PAY_PAGE_CUSTOMER,loansListController.LoansListView,dtoCustomer.getName(),true);
+                getLoansForSaleServlet("");
+                absControllerRef.showLoanInformationInAdminAndCustomerViewServlet(LOANS_TO_PAY_PAGE_CUSTOMER,loansListController.LoansListView,dtoCustomer.getName(),dtoCustomer.getRewind());
 
             }
             catch (Exception e){
                 e.printStackTrace();
             }
         });
+    }
+
+    private void getMassagesByYaz(int yaz){
+        List<String> list=new ArrayList<>();
+        //String yazHistoryPaymentYaz="Payment Yaz: " + yaz;
+        String yazHistoryPaymentYaz=String.valueOf(yaz);
+
+        String yazHistoryPaymentYazThatDidntHappened = "Payment Yaz that didnt happened : " + yaz;
+        for (String string: notificationAreaListView.getItems()) {
+                list.add(string);
+            if(string.contains(yazHistoryPaymentYaz) || string.contains(yazHistoryPaymentYazThatDidntHappened)){
+                break;
+            }
+        }
+
+        notificationAreaListView.getItems().clear();
+        notificationAreaListView.getItems().addAll(list);
+        /*if(notificationAreaListView.getItems().size()!=list.size()) {
+            firstTime = false;
+            list=new ArrayList<>();
+            notificationAreaListView.getItems().clear();
+            notificationAreaListView.getItems().addAll(list);
+        }
+        else {
+            originalStringList.clear();
+            originalStringList.addAll(notificationAreaListView.getItems());
+        }*/
+
+    }
+
+    private void mySetDisable(boolean flag){
+        closeLoanButton.setDisable(flag);
+        enableInlayButton.setDisable(flag);
+        chooseLoanButton.setDisable(flag);
+        unChosenLoanButton.setDisable(flag);
+        doneChosenLoanButton.setDisable(flag);
+        withdrawButton.setDisable(flag);
+        chargeButton.setDisable(flag);
+        absControllerRef.loadFileButton.setDisable(flag);
+
+      /*  if(firstTime && flag){
+            getMassagesByYaz(currentYaz);
+        }
+        else if(!flag && !firstTime) {
+            notificationAreaListView.getItems().addAll(originalStringList);
+            firstTime=true;
+        }*/
     }
 
     private void getYazUnitServlet(){
@@ -193,7 +311,48 @@ public class CustomerController extends HelperFunction implements Initializable 
                             e.printStackTrace();
                         }
                         absControllerRef.currentYaz.setText("Current Yaz : "+ rawBody);
-                        currentYaz=Integer.parseInt(rawBody);
+                        currentYaz.set(Integer.parseInt(rawBody));
+                    });
+                }
+            }
+        });
+    }
+
+    private void getLoansForSaleServlet(String loanID){
+        String finalUrl = HttpUrl
+                .parse(SELL_LOAN_PAGE_CUSTOMER)
+                .newBuilder()
+                .addQueryParameter("loan", loanID)
+                .build()
+                .toString();
+
+        HttpClientUtil.runAsyncGet(finalUrl, new Callback() {
+
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                Platform.runLater(() ->
+                        popupMessage("Error", "Something went wrong: " + e.getMessage())
+                );
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if (response.code() != 200) {
+                    String responseBody = response.body().string();
+                    Platform.runLater(() ->
+                            popupMessage("Error", "Something went wrong: " + responseBody)
+                    );
+                } else {
+                    Platform.runLater(() -> {
+                        String rawBody = null;
+                        try {
+                            rawBody = response.body().string().trim();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        DTOLoansForSaleList dtoLoansForSaleList=GSON_INSTANCE.fromJson(rawBody, DTOLoansForSaleList.class);
+                        if(loanID.equals(""))
+                        showLoansForSaleInformationInCustomerView(loansForSaleListView,dtoLoansForSaleList.getDTOLoansForSale(),dtoCustomer.getRewind());
                     });
                 }
             }
@@ -219,6 +378,17 @@ public class CustomerController extends HelperFunction implements Initializable 
 
         loansThatShouldBePaidBorderPane.setCenter(loansListController.LoansMainGridPane);
         onLoanClickProperty(loansListController,this);
+        onSaleButton();
+        onBuyButton();
+        currentYaz.addListener(((observable, oldValue, newValue) -> {
+            if(oldValue.intValue()>newValue.intValue()) {
+                getMassagesByYaz(newValue.intValue());
+            }
+            else {
+                notificationAreaListView.getItems().clear();
+                notificationAreaListView.getItems().addAll(originalStringList);
+            }
+        }));
         setListRefresher();
 
         chosenInlayListView = new ListView<>();
@@ -296,17 +466,21 @@ public class CustomerController extends HelperFunction implements Initializable 
         paymentDialog.setContentText("Please enter the amount of money you would like to " + textOperation + ": ");
         paymentDialog.setHeaderText("Current Balance: " + dtoCustomer.getAmount());
         paymentDialog.showAndWait();
+        try {
+            int amount = Integer.parseInt(paymentDialog.getResult());
 
-        int amount = Integer.parseInt(paymentDialog.getResult());
-        if (paymentDialog.getResult() != null && amount > 0) {
-            if (indexOperation == 1) {
-                cashDepositAndWithdrawalServlet(DEPOSIT_PAGE_CUSTOMER, String.valueOf(amount));
-                dtoCustomer.addAmount(amount);
-            } else if (indexOperation == 2 && amount <= dtoCustomer.getAmount()) {
-                cashDepositAndWithdrawalServlet(WITHDRAWAL_PAGE_CUSTOMER, String.valueOf(amount));
-                dtoCustomer.addAmount(amount * (-1));
-            } else
-                throw new NumberFormatException();
+            if (paymentDialog.getResult() != null && amount > 0) {
+                if (indexOperation == 1) {
+                    cashDepositAndWithdrawalServlet(DEPOSIT_PAGE_CUSTOMER, String.valueOf(amount));
+                    dtoCustomer.addAmount(amount);
+                } else if (indexOperation == 2 && amount <= dtoCustomer.getAmount()) {
+                    cashDepositAndWithdrawalServlet(WITHDRAWAL_PAGE_CUSTOMER, String.valueOf(amount));
+                    dtoCustomer.addAmount(amount * (-1));
+                } else
+                    throw new NumberFormatException();
+            }
+        }catch (NumberFormatException e){
+            popupMessage("Error","Please be sure to enter a number");
         }
     }
 
@@ -609,7 +783,11 @@ public class CustomerController extends HelperFunction implements Initializable 
         loansListController.LoansListView.getSelectionModel().selectedItemProperty().addListener(e -> {
             if(!loansListController.LoansListView.getItems().isEmpty()) {
                 DTOLoan selectedLoan= loansListControllerHandler(loansListController);
-                    if (selectedLoan.getLoanStatus() == DTOLoanStatus.RISK || (!selectedLoan.getIsPaid() && selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK(currentYaz) == 0)) {
+                    if (selectedLoan.getLoanStatus() == DTOLoanStatus.RISK || (!selectedLoan.getIsPaid() && selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK(currentYaz.get()) == 0)) {
+                        if(dtoCustomer.getRewind()){
+                            payButton.setDisable(true);
+                            return;
+                        }
                         payButton.setDisable(false);
                         payButton.setOnAction(e1 -> {
                             try {
@@ -627,7 +805,7 @@ public class CustomerController extends HelperFunction implements Initializable 
                                         throw new Exception("The payment was not preformed!");
                                     }
                                 }
-                                else if (selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK(currentYaz) == 0) {
+                                else if (selectedLoan.numberOfYazTillNextPulseWithoutTheIncOfWindowOfPaymentCounterDK(currentYaz.get()) == 0) {
                                     operateThePaymentOfTheLoanDesktopServlet(selectedLoan,selectedLoan.paymentPerPulse());
                                     //bank.operateThePaymentOfTheLoanDesktop(selectedLoan, selectedLoan.paymentPerPulse());
                                 }

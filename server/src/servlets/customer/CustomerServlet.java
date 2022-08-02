@@ -2,6 +2,7 @@ package servlets.customer;
 
 import dataObjects.dtoBank.dtoAccount.DTOMovement;
 import dataObjects.dtoBank.dtoAccount.DTOMovementsList;
+import dataObjects.dtoCustomer.DTOCustomer;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +28,9 @@ public class CustomerServlet extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         UIInterfaceLogic bank = ServletUtils.getBank(getServletContext());
-        String json = GSON_INSTANCE.toJson(bank.getCustomerByName(customerFromSession));
+        DTOCustomer dtoCustomer=bank.getCustomerByName(customerFromSession);
+        dtoCustomer.setRewind(bank.getRewind());
+        String json = GSON_INSTANCE.toJson(dtoCustomer);
         out.println(json);
         out.flush();
     }

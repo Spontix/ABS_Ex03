@@ -6,13 +6,21 @@ import javafx.scene.control.ListView;
 import logic.bank.account.Inlay;
 import logic.bank.account.Loan;
 import logic.bank.account.Movement;
+import logic.bank.bankLogicYazHistory.BankLogicBankHistoryList;
 import logic.customer.Customer;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface UIInterfaceLogic {
+    ArrayList<DTOLoanForSale> getListLoansSales();
+
+    DTOLoanForSale loanForSaleBuild(String customerName, int amount, DTOLoan loan) throws InvocationTargetException, InstantiationException, IllegalAccessException;
+
+
+
     DTOLoan loanBuilderFileUploadServer(String idLoan, String ownerLoan, String categoryLoan, int capitalLoan, int totalYazTimeLoan, int paysEveryYazLoan, int interestPerPaymentLoan) throws InvocationTargetException, InstantiationException, IllegalAccessException;
 
     DTOMovement addMovementToClient(int customerIndex, Movement movement);
@@ -79,7 +87,7 @@ public interface UIInterfaceLogic {
 
     Inlay inlayBuild(DTOCustomer customer, int investAmount, String category, double minInterestYaz, int minYazTime) throws InvocationTargetException, InstantiationException, IllegalAccessException;
     //////////copy of inlayBuild with addition//////////
-    Inlay inlayBuildForDK(DTOCustomer customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower) throws InvocationTargetException, InstantiationException, IllegalAccessException;
+    Inlay inlayBuildForDK(DTOCustomer customer, int investAmount, String category, double minInterestYaz, int minYazTime, int maximumLoansOpenToTheBorrower,int getRemain) throws InvocationTargetException, InstantiationException, IllegalAccessException;
 
     DTOMovement movementBuildToCustomer(DTOCustomer customer, int movementSum, String movementOperation, int movementSumBeforeOperation, int movementSumAfterOperation) throws InvocationTargetException, InstantiationException, IllegalAccessException;
 
@@ -91,12 +99,30 @@ public interface UIInterfaceLogic {
 
     DTOLoan getLoanById(String id);
 
-    ArrayList<DTOLoan> yazProgressLogicDesktop() throws InvocationTargetException, InstantiationException, IllegalAccessException;
+    ArrayList<DTOLoan> yazProgressLogicDesktop(BankLogicBankHistoryList bankLogicBankHistoryList) throws InvocationTargetException, InstantiationException, IllegalAccessException;
 
     void myAddListenerToStringPropertyLoans(ListView<String> listener,DTOLoan dtoLoan);
 
     ArrayList<DTOMovement> addMovementPerLoanFromInlayDK(DTOInlay inlay, List<DTOLoan> loansCustomerChosen, int chosenInvestAmount, int maximumOwnershipLoanPercentage) throws InvocationTargetException, InstantiationException, IllegalAccessException;
 
     void operateThePaymentOfTheLoanDesktop(DTOLoan loan,int customerPayment) throws InvocationTargetException, InstantiationException, IllegalAccessException;
+
+    void setRewind(boolean rewind);
+
+    boolean getRewind();
+
+    DTOLoanForSale getOriginalLoanForSale(DTOLoanForSale dtoLoanForSale);
+
+    void removeLoanFromListOfAccompanied(DTOLoan loanForSale, String nameOfBorrower);
+
+    void removeLoanFromLoansSales(DTOLoanForSale realLoanForSale, DTOLoan loanForSale);
+
+    void addLoanToListOfAccompanied(DTOLoan realLoanForSale, DTOCustomer customerByName);
+
+    void removeInlayFromListOfInlays(DTOLoan realLoanForSale, String nameOfBorrower);
+
+    void addInlayToClientByCustomerName(DTOLoan loanForSale, DTOInlay dtoInlay);
+
+    void removeInlaysFromOldLenderAndAddToNewLender(String nameOfBorrower, String customerFromSession,List<DTOInlay> oldInlay,DTOInlay newInlay);
 }
 

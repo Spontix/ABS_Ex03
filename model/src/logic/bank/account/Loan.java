@@ -9,6 +9,7 @@ import javafx.scene.control.ListView;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 public class Loan extends DTOLoan {
 
@@ -18,6 +19,60 @@ public class Loan extends DTOLoan {
     }
 
 
+    public static Loan build(Loan loan) {
+        Loan dtoLoan = new Loan();
+        dtoLoan.isPaid=loan.isPaid;
+        dtoLoan.nextYazToBePaid=loan.nextYazToBePaid;
+        dtoLoan.totalInterestPayTillEnd= loan.totalInterestPayTillEnd;
+        dtoLoan.totalCapitalPayTillEnd=loan.totalCapitalPayTillEnd;
+        dtoLoan.totalCapitalPayTillNow=loan.totalCapitalPayTillNow;
+        dtoLoan.totalInterestPayTillNow= loan.totalInterestPayTillNow;;
+        dtoLoan.windowOfPaymentCounter=loan.windowOfPaymentCounter;
+        dtoLoan.capital = loan.capital;
+        dtoLoan.loanStatus = loan.loanStatus;
+        dtoLoan.paysEveryYaz = loan.paysEveryYaz;
+        dtoLoan.id = loan.id;
+        dtoLoan.owner = loan.owner;
+        dtoLoan.totalYazTime = loan.totalYazTime;
+        dtoLoan.interestPerPayment = loan.interestPerPayment;
+        dtoLoan.category = loan.category;
+        dtoLoan.startedYazInActive=loan.startedYazInActive;
+        dtoLoan.endedYaz=loan.endedYaz;
+        dtoLoan.inRiskCounter=loan.inRiskCounter;
+        dtoLoan.debt=loan.debt;
+        dtoLoan.capitalSumLeftTillActive=loan.capitalSumLeftTillActive;
+        List<DTOCustomer> accompaniedList = new ArrayList<>();
+        List<DTOInlay> inlaysList = new ArrayList<>();
+        List<DTOMovement> movementsList=new ArrayList<>();
+        List<Integer> listOfYazPayments=new ArrayList<>();
+        List<Integer> listOfInRiskYazPayments=new ArrayList<>();
+        List<DTOPaymentsInfo> paymentsInfoList=new ArrayList<>();
+        for (DTOPaymentsInfo dtoPaymentsInfo : loan.paymentsInfoList) {
+            paymentsInfoList.add(DTOPaymentsInfo.build(dtoPaymentsInfo));
+        }
+        for (DTOCustomer dtoAccount : loan.listOfAccompanied) {
+            accompaniedList.add(DTOCustomer.build(dtoAccount));
+        }
+        for (DTOInlay dtoInlay : loan.listOfInlays) {
+            inlaysList.add(DTOInlay.build(dtoInlay));
+        }
+        for (DTOMovement dtoMovement : loan.listOfMovements) {
+            movementsList.add(DTOMovement.build(dtoMovement));
+        }
+        listOfYazPayments.addAll(loan.listOfYazPayments);
+        listOfInRiskYazPayments.addAll(loan.listOfInRiskYazPayments);
+        dtoLoan.listOfInRiskYazPayments=listOfInRiskYazPayments;
+        dtoLoan.listOfYazPayments=listOfYazPayments;
+        dtoLoan.listOfInlays=inlaysList;
+        dtoLoan.listOfAccompanied=accompaniedList;
+        dtoLoan.listOfMovements=movementsList;
+        dtoLoan.paymentsInfoList=paymentsInfoList;
+        dtoLoan.massagesProperty=loan.massagesProperty;
+        dtoLoan.pulseCounterThatHappened=loan.pulseCounterThatHappened;
+
+
+        return dtoLoan;
+    }
 
     public void setTotalYaz(int totalYazTime) {
         this.totalYazTime= totalYazTime;

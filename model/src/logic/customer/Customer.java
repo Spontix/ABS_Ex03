@@ -13,6 +13,37 @@ import java.util.stream.Collectors;
 //Eliran
 public class Customer extends DTOCustomer implements Account {
 
+    public static Customer build(Customer customer){
+        Customer dtoCustomer=new Customer();
+        dtoCustomer.name=customer.name;
+        dtoCustomer.amount=customer.amount;
+        ArrayList<DTOMovement> dtoMovements=new ArrayList<>();
+        ArrayList<DTOLoan> Loaner = new ArrayList<>();
+        ArrayList<DTOLoan> Borrower = new ArrayList<>();
+        ArrayList<DTOInlay> inlays=new ArrayList<>();
+        for (DTOLoan loan : customer.borrower) {
+            Borrower.add(DTOLoan.build(loan));
+        }
+
+        for (DTOInlay inlay : customer.inlays) {
+            inlays.add(DTOInlay.build(inlay));
+        }
+
+        for (DTOLoan loan : customer.loaner) {
+            Loaner.add(DTOLoan.build(loan));
+        }
+
+        for (DTOMovement movement : customer.movements) {
+            dtoMovements.add(DTOMovement.build(movement));
+        }
+
+        dtoCustomer.movements=dtoMovements;
+        dtoCustomer.loaner=Loaner;
+        dtoCustomer.borrower=Borrower;
+        dtoCustomer.inlays=inlays;
+        return dtoCustomer;
+    }
+
     @Override
     public void setAmount(int startAmount) {
         amount = startAmount;

@@ -17,7 +17,7 @@ public class Constants {
 
     // Server resources locations
     public final static String BASE_DOMAIN = "localhost";
-    private final static String BASE_URL = "http://" + BASE_DOMAIN + ":8080";
+    private final static String BASE_URL = "http://" + BASE_DOMAIN + ":8080"+"/ABSEx03";
     private final static String CONTEXT_PATH_CUSTOMER = "/customer";
     private final static String FULL_SERVER_PATH_CUSTOMER = BASE_URL + CONTEXT_PATH_CUSTOMER;
     private final static String CONTEXT_PATH_ADMIN = "/admin";
@@ -35,12 +35,18 @@ public class Constants {
     public final static String LOANS_TO_PAY_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loans-to-pay";
     public final static String PAYMENT_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/loanPayment";
     public final static String MOVEMENTS_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/movements";
+    public final static String SELL_LOAN_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/sell-loan";
+    public final static String BUY_LOAN_PAGE_CUSTOMER = FULL_SERVER_PATH_CUSTOMER + "/buy-loan";
+
 
     public final static String LOGIN_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/login";
     public final static String LOANS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/loansInformation";
     public final static String CUSTOMERS_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/customersInformation";
     public final static String YAZ_INCREASE_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/yazUnitProgress";
     public final static String BANK_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/bankInformation";
+    public final static String REWIND_OFF_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/rewindOff";
+    public final static String REWIND_ON_PAGE_ADMIN = FULL_SERVER_PATH_ADMIN + "/rewindOn";
+
 
 
 

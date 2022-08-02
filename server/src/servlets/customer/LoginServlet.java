@@ -28,10 +28,15 @@ public class LoginServlet extends HttpServlet {
 
         if (customerFromSession == null) {
             String usernameFromParameter = request.getParameter(USERNAME);
-            if (usernameFromParameter == null || usernameFromParameter.isEmpty()) {
+            if (usernameFromParameter == null || usernameFromParameter.isEmpty() ) {
                 out.println("Please enter a username...");
                 response.setStatus(HttpServletResponse.SC_CONFLICT);
-            } else {
+            }
+            else if(usernameFromParameter.equals("Admin") || usernameFromParameter.equals("admin")){
+                out.println("You are not an admin!");
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+            }
+            else {
                 usernameFromParameter = usernameFromParameter.trim();
                 synchronized (this) {
                     String finalUsernameFromParameter = usernameFromParameter;

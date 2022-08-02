@@ -1,0 +1,16 @@
+<component name="ArtifactManager">
+  <artifact name="customerClient:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/customerClient_jar</output-path>
+    <root id="root">
+      <element id="archive" name="customerClient.jar">
+        <element id="module-output" name="customerClient" />
+        <element id="module-output" name="dto" />
+        <element id="module-output" name="clientUtils" />
+      </element>
+      <element id="library" level="application" name="okHttp" />
+      <element id="file-copy" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/20.1.0/annotations-20.1.0.jar" />
+      <element id="file-copy" path="$PROJECT_DIR$/../Desktop/08. Java FX/08. Java FX/tools/controlsfx/controlsfx-8.40.14.jar" />
+      <element id="file-copy" path="$PROJECT_DIR$/server/gson-2.8.8.jar" />
+    </root>
+  </artifact>
+</component>

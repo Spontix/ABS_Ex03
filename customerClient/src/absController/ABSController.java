@@ -199,12 +199,18 @@ public class ABSController extends HelperFunction implements Initializable {
                         showLoanInformationInAdminAndCustomerView(loanListView,dtoLoansList.getDTOLoans(),loansToPayListView);
                         if(url.equals(LOANS_TO_PAY_PAGE_CUSTOMER)) {
                             for (DTOLoan dtoLoan : dtoLoansList.getDTOLoans()) {
-                                if (dtoLoan.getMassagesProperty().get().equals("")) {
-                                } else if (customerController.notificationAreaListView.getItems().contains(dtoLoan.getMassagesProperty().get())) {
-                                } else
-                                    customerController.notificationAreaListView.getItems().add(dtoLoan.getMassagesProperty().get());
+                                if(!customerController.dtoCustomer.getRewind()) {
+                                    if (dtoLoan.getMassagesProperty().get().equals("")) {
+                                    } else if (customerController.notificationAreaListView.getItems().contains(dtoLoan.getMassagesProperty().get())) {
+                                    } else {
+                                        customerController.notificationAreaListView.getItems().add(dtoLoan.getMassagesProperty().get());
+                                        customerController.originalStringList.add(dtoLoan.getMassagesProperty().get());
+                                    }
+                                }
                             }
                         }
+
+
                     });
                 }
             }

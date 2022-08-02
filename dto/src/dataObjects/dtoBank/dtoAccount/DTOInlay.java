@@ -12,6 +12,12 @@ public class DTOInlay {
     protected int minYazTime;
     protected int maximumLoansOpenToTheBorrower;
     protected int maximumLoanOwnershipPercentage;
+    protected int amountLeftRemainingRepayLoan;
+
+    public int getAmountLeftRemainingRepayLoan(){return amountLeftRemainingRepayLoan;}
+
+    public void calcAmountLeftRemainingRepayLoan(int amount){amountLeftRemainingRepayLoan=amountLeftRemainingRepayLoan-amount;}
+
     public DTOInlay(){
 
     }
@@ -25,7 +31,8 @@ public class DTOInlay {
         this.maximumLoansOpenToTheBorrower=maximumLoansOpenToTheBorrower;
         this.maximumLoanOwnershipPercentage=maximumLoanOwnershipPercentage;
         this.minYazTime=minYazTime;
-        this.name=name;
+        this.name=customer.getName();
+        this.amountLeftRemainingRepayLoan=investAmount;
     }
 
     public int getMaximumLoanOwnershipPercentage(){
@@ -68,6 +75,7 @@ public class DTOInlay {
         dtoInlay.minInterestYaz=inlay.minInterestYaz;
         dtoInlay.minYazTime=inlay.minYazTime;
         dtoInlay.name=inlay.getName();
+        dtoInlay.amountLeftRemainingRepayLoan=inlay.amountLeftRemainingRepayLoan;
         return dtoInlay;
     }
 

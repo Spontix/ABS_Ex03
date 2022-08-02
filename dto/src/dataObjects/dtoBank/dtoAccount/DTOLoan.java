@@ -217,8 +217,15 @@ public class DTOLoan {
         return (paymentPerPulse() * (listOfInlays.stream().filter(i-> Objects.equals(i.getName(), customer.getName())).collect(Collectors.toList()).get(0).investAmount * 100) / capital) / 100;
     }
 
-    public int calculatePaymentToLoaner(DTOCustomer customer,int sum) {
-        return (sum * (listOfInlays.stream().filter(i-> Objects.equals(i.getName(), customer.getName())).collect(Collectors.toList()).get(0).investAmount * 100) / capital) / 100;
+    public int calculatePaymentToLoaner(DTOCustomer customer,int sum,DTOLoanForSale dtoLoanForSale,boolean flag) {
+        DTOInlay dtoInlay = listOfInlays.stream().filter(i -> Objects.equals(i.getName(), customer.getName())).collect(Collectors.toList()).get(0);
+        if (flag)
+            dtoInlay.calcAmountLeftRemainingRepayLoan(sum - sum * this.getInterestPerPayment() / (100 + this.getInterestPerPayment()));
+
+        if (dtoLoanForSale != null) {
+            dtoLoanForSale.setBalanceOfTheFund(dtoInlay.getAmountLeftRemainingRepayLoan());
+        }
+        return (sum * (listOfInlays.stream().filter(i -> Objects.equals(i.getName(), customer.getName())).collect(Collectors.toList()).get(0).investAmount * 100) / capital) / 100;
     }
 
 

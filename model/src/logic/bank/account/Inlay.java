@@ -9,6 +9,10 @@ public class Inlay extends DTOInlay {
     private Inlay(){
     }
 
+    public void setAmountLeftRemainingRepayLoan(int amount){
+        amountLeftRemainingRepayLoan=amount;
+    }
+
     public void setInvestAmount(int inlayInvestAmount){
         investAmount=inlayInvestAmount;
     }
